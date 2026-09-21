@@ -2,8 +2,7 @@
 
 ## Demos
 
-- I'll put the first demo here in a bit
-
+- [Chessboard Demo](Chessboard)
 
 ## Projects
 
