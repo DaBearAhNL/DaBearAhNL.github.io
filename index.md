@@ -8,4 +8,4 @@
 
 ## Projects
 
-- First assignment will go here
+- [Interactive Scene](scene)
