@@ -2,8 +2,10 @@
 
 ## Demos
 
-- [Chessboard Demo](Chessboard)
+- [Chessboard Demo](01-chessboard)
 - [Circles Demo](02-circles)
+- [Square Around Edge of Screen](03-square)
+
 ## Projects
 
 - First assignment will go here
