@@ -37,7 +37,7 @@ function move() {
   }
   else if (state === 'up') {
     y -= speed;
-    if (y >= 0 - size) {
+    if (y <= 0 - size) {
       state = 'right';
     }
   }
