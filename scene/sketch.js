@@ -14,13 +14,16 @@ let PlrVertState;
 const GRAVITY = 2.25;
 const SIZE = 125;
 
-let distance;
-let projectilePosX = [];
-let projectilePosY = [];
 
+let handX,handY;
+let gunX, gunY;
+let genAngle, angleGun, angleHand, projAngle;
+
+let projectileStorage = [];
 
 async function setup() {
   createCanvas(windowWidth, windowHeight);
+  noStroke();
 
   PlayerX = width/2;
   PlayerY = height - SIZE/2;
@@ -32,7 +35,7 @@ function draw() {
 
   background(220);
 
-  square(PlayerX,PlayerY,SIZE);
+  
 
   horizBorders();
   baseVertStateDetector();
@@ -40,8 +43,10 @@ function draw() {
   plrBaseHorizMovement();
   plrBaseVertMovements();
 
-  let distance = dist(PlayerX, PlayerY, mouseX, mouseY);
-  console.log(distance);
+  displayGunHand(PlayerX, PlayerY, 65, 115, 50);
+
+  fill('white');
+  square(PlayerX,PlayerY,SIZE);
 }
 
 
@@ -97,6 +102,31 @@ function gravitySim() {
   PlayerDy += GRAVITY;
   PlayerY += PlayerDy;
 }
+
+
+function displayGunHand(x, y, handPlacement, gunPlacement, projOrigin) {
+  genAngle = atan2(mouseY - y, mouseX - x);
+  angleGun = genAngle;
+  angleHand = genAngle;
+
+
+  gunX = x + gunPlacement  * cos(angleGun);
+  gunY = y + gunPlacement * sin(angleGun);
+
+  push();
+  translate(gunX,gunY);
+  rotate(angleGun);
+  fill('black');
+  rect(0,0,50,35);
+  pop();
+
+  handX = x + handPlacement  * cos(angleHand);
+  handY = y + handPlacement * sin(angleHand);
+
+  fill('black');
+  circle(handX,handY,SIZE/2);
+}
+
 
 
 
