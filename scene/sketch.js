@@ -5,110 +5,109 @@
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
 
-let dy = 1;
-let x = 50;
-let y = 50;
-let size = 100;
+let PlayerDy = 0.5;
+let PlayerX, PlayerY;
 
 let vertStates = [ "onGround", "midFall", "midJump"];
-let curVerState;
+let PlrVertState;
 
-let mode = true;
-let squareColor;
+const GRAVITY = 2.25;
+const SIZE = 125;
 
-const GRAVITY = 2.5;
+let distance;
+let projectilePosX = [];
+let projectilePosY = [];
+
 
 async function setup() {
   createCanvas(windowWidth, windowHeight);
+
+  PlayerX = width/2;
+  PlayerY = height - SIZE/2;
+
+  rectMode(CENTER);
 }
 
 function draw() {
 
   background(220);
-  fill(squareColor);
-  square(x,y,size);
 
-  
-  setBorders();
-  moveAround();
-  
-  verticalStateSims();
+  square(PlayerX,PlayerY,SIZE);
 
-  switchTools();
-  switchColors();
+  horizBorders();
+  baseVertStateDetector();
 
+  plrBaseHorizMovement();
+  plrBaseVertMovements();
 
-  console.log(curVerState);
+  let distance = dist(PlayerX, PlayerY, mouseX, mouseY);
+  console.log(distance);
 }
 
 
-function moveAround() {
+// Base Entity Horizontal Movements
+
+function plrBaseHorizMovement() {
   if (keyIsDown('a')) {
-    x -= 10;
+    PlayerX -= 10;
   }
   if (keyIsDown('d')) {
-    x += 10;
+    PlayerX += 10;
+  }
+}
+
+function horizBorders() {
+  if (PlayerX + SIZE/2 > width) { // Right Detection
+    PlayerX = width - SIZE/2;
+  }
+  else if (PlayerX < 0 + SIZE/2) { // Left Detection
+    PlayerX = 0 + SIZE/2;
+  }
+}
+
+
+// Base Entity Vertical Movements
+
+function plrBaseVertMovements() {
+  if (PlrVertState === vertStates[0] && keyIsDown(' ')) {
+    PlayerDy -= 12.5;
+  }
+  else if (PlrVertState === vertStates[2] && keyIsDown(' ')) {
+    PlayerDy -= 0.75;
   }
   
-  if (keyIsDown(' ') && curVerState === vertStates[0]) {
-    dy -= 17.5;
-  }
-  else if (keyIsDown(' ') && curVerState === vertStates[2] && dy < 0) {
-    dy -= 1.58;
-  }
-
+  gravitySim();
 }
 
-function setBorders() {
-
-  // Horizontal Detection
-  if (x + size > width) { // Right Detection
-    x = width - size;
+function baseVertStateDetector() {
+   if (PlayerY + SIZE/2 > height) {
+    PlrVertState = vertStates[0];
+    PlayerY = height - SIZE/2
+    PlayerDy = 0;
   }
-  else if (x < 0) { // Left Detection
-    x = 0;
+  else if (PlayerDy <= 0 && PlayerY + SIZE < height) {
+    PlrVertState = vertStates[2];
   }
-
-  // Vertical Detection
-  if (y + size > height) { // Ground Detection
-    dy = 0;
-    y = height - size;
-    curVerState = vertStates[0];
-  }
-  if (y - size < 0) { // Ceiling Detection
-    y = 0 + size;
-  }
-} 
-
-function verticalStateSims() {
-  if (y + size < height && curVerState !== vertStates[1]) {
-    curVerState = vertStates[2];
-  }
-
-  if (dy > 0) {
-    curVerState = vertStates[1];
-  }
-  
-  dy = dy + GRAVITY;
-  y = y + dy;
-  console.log(dy);
-}
-
-function switchTools() {
-  if (key === 'q') {
-    mode = true;
-  }
-  if(key ==='e') {
-    mode = false;
+  else if (PlayerDy > 0 && PlayerY + SIZE < height) {
+    PlrVertState = vertStates[1];
   }
 }
 
+function gravitySim() {
+  PlayerDy += GRAVITY;
+  PlayerY += PlayerDy;
 
-function switchColors() {
-  if (mode) {
-    squareColor = 'red';
-  }
-  else if (!mode) {
-    squareColor = 'white';
-  }
+  // DumDy += GRAVITY;
+  // DumY += DumDy;
 }
+
+
+function mousePressed() {
+
+}
+
+
+
+
+
+
