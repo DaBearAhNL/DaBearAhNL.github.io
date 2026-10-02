@@ -80,9 +80,9 @@ function plrBaseVertMovements() {
 }
 
 function baseVertStateDetector() {
-   if (PlayerY + SIZE/2 > height) {
+  if (PlayerY + SIZE/2 > height) {
     PlrVertState = vertStates[0];
-    PlayerY = height - SIZE/2
+    PlayerY = height - SIZE/2;
     PlayerDy = 0;
   }
   else if (PlayerDy <= 0 && PlayerY + SIZE < height) {
@@ -96,15 +96,9 @@ function baseVertStateDetector() {
 function gravitySim() {
   PlayerDy += GRAVITY;
   PlayerY += PlayerDy;
-
-  // DumDy += GRAVITY;
-  // DumY += DumDy;
 }
 
 
-function mousePressed() {
-
-}
 
 
 
