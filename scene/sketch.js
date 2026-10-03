@@ -7,6 +7,7 @@
 
 let PlayerDy = 0.5;
 let PlayerX, PlayerY;
+let PlayerSpeed = 10;
 
 let vertStates = [ "onGround", "midFall", "midJump"];
 let PlrVertState;
@@ -19,7 +20,13 @@ let projSpeed = 10;
 let handX,handY;
 let gunX, gunY;
 let genAngle, projAngle;
+
 let gunColor;
+let projectileColor;
+let colorGunCounter = 0;
+let colorProjectileCounter = 0;
+let colorGunLerpDirection = 1;
+let colorProjectileLerpDirection = 1;
 
 let modeStates = ["pellets", "shotgun", "beam"];
 let curModeState = modeStates[0];
@@ -41,11 +48,11 @@ async function setup() {
   rectMode(CENTER);
 }
 
-
-
 function draw() {
 
   background(220);
+
+  displayInstructions();
 
   changeSpeed();
   changeGunColor();
@@ -67,18 +74,22 @@ function draw() {
 
 // Base Entity Horizontal Movements
 function plrBaseHorizMovement() {
+
   if (keyIsDown('a')) {
-    PlayerX -= 10;
+    PlayerX -= PlayerSpeed;
   }
+
   if (keyIsDown('d')) {
-    PlayerX += 10;
+    PlayerX += PlayerSpeed;
   }
 }
 
 function horizBorders() {
+
   if (PlayerX + SIZE/2 > width) { // Right Detection
     PlayerX = width - SIZE/2;
   }
+
   else if (PlayerX < 0 + SIZE/2) { // Left Detection
     PlayerX = 0 + SIZE/2;
   }
@@ -88,25 +99,31 @@ function horizBorders() {
 
 // Base Entity Vertical Movements
 function plrBaseVertMovements() {
+
   if (PlrVertState === vertStates[0] && keyIsDown(' ')) {
     PlayerDy -= 12.5;
   }
+
   else if (PlrVertState === vertStates[2] && keyIsDown(' ')) {
     PlayerDy -= 0.75;
   }
   
   gravitySim();
+
 }
 
 function baseVertStateDetector() {
+
   if (PlayerY + SIZE/2 > height) {
     PlrVertState = vertStates[0];
     PlayerY = height - SIZE/2;
     PlayerDy = 0;
   }
+
   else if (PlayerDy <= 0 && PlayerY + SIZE < height) {
     PlrVertState = vertStates[2];
   }
+
   else if (PlayerDy > 0 && PlayerY + SIZE < height) {
     PlrVertState = vertStates[1];
   }
@@ -121,29 +138,53 @@ function gravitySim() {
 
 // Shifting Gun Modes
 function mouseWheel() {
+
   modeStateCount += 1;
   modeStateCount = modeStateCount % (modeStates.length);
   curModeState = modeStates[modeStateCount]
 
   projectileStorage = [];
   isLaserOn = false;
-  console.log(curModeState);
 }
 
 function changeGunColor() {
+
   if (curModeState === modeStates[0]) {
     gunColor = 'black'
   }
+
   else if (curModeState === modeStates[1]) {
     let interval = 100;
     if (millis() - storedTime >= interval) {
-     gunColor = color(random(0,255),random(0,255),random(0,255)); 
+     gunColor = color(random(0,55),random(0,55),random(0,55)); 
+     projectileColor = color(random(0,255),random(0,255),random(0,255)); 
      storedTime = millis();
+    }
+  }
+
+  else if (curModeState === modeStates[2]) {
+    let gunColor1 = color(34,39,43);
+    let gunColor2 = color(28,55,77);
+    let pelletColor1 = color(random(150,255),random(150,255),random(150,255))
+    let pelletColor2 = color(random(100,205),random(100,205),random(100,205))
+
+    projectileColor = lerpColor(pelletColor1,pelletColor2,colorProjectileCounter)
+    gunColor = lerpColor(gunColor1,gunColor2,colorGunCounter);
+
+    colorGunCounter += 0.005 * colorGunLerpDirection
+    colorProjectileCounter += 0.01 * colorGunLerpDirection
+
+    if (colorGunCounter <= 0 && colorGunCounter < 1 || colorGunCounter >= 1) {
+      colorGunLerpDirection *= -1;
+    }
+    if (colorProjectileCounter <= 0 && colorProjectileCounter < 1 || colorProjectileCounter >= 1) {
+      colorProjectileLerpDirection *= -1;
     }
   }
 }
 
 function displayGunHand(x, y, handPlacement, gunPlacement) {
+
   genAngle = atan2(mouseY - y, mouseX - x);
 
   gunX = x + gunPlacement  * cos(genAngle);
@@ -180,8 +221,8 @@ function mousePressed() {
       vy: sin(genAngle) * projSpeed,
     }
     projectileStorage.push(projectile);
-
   }
+
   else if (curModeState === modeStates[1]) {
     for (let i = 0; i < shotgunAmnt; i++) {
 
@@ -224,44 +265,40 @@ function mousePressed() {
 
 
 function castProjectile() {
-  if (curModeState === modeStates[0]) {
 
+  if (curModeState === modeStates[0]) {
     let bulletSize = 25;
     for (let i = projectileStorage.length - 1; i >= 0; i--) {
-    
-    circle(projectileStorage[i].x, projectileStorage[i].y, bulletSize);
+      circle(projectileStorage[i].x, projectileStorage[i].y, bulletSize);
 
-    projectileStorage[i].x += projectileStorage[i].vx;
-    projectileStorage[i].y += projectileStorage[i].vy;
-    
-    projectileStorage[i].vy += 0.75;
+      projectileStorage[i].x += projectileStorage[i].vx;
+      projectileStorage[i].y += projectileStorage[i].vy;
+      projectileStorage[i].vy += 0.75;
 
-    if (offscreenCheck(projectileStorage[i].x,  projectileStorage[i].y)) {
-      projectileStorage.splice(i,1);
+      if (offscreenCheck(projectileStorage[i].x,  projectileStorage[i].y)) {
+        projectileStorage.splice(i,1);
       }
     }
   }
 
   else if (curModeState === modeStates[1]) {
-
     let bulletLife = 3000;
     let bulletSize = 15;
     for (let i = projectileStorage.length - 1; i >= 0; i--) {
-    
+      fill(projectileColor);
       circle(projectileStorage[i].x, projectileStorage[i].y, bulletSize);
 
       projectileStorage[i].x += projectileStorage[i].vx;
       projectileStorage[i].y += projectileStorage[i].vy;
-    
       projectileStorage[i].vy += 0.75;
 
       if (projectileStorage[i].y <= 0 - bulletSize/2 || projectileStorage[i].y >= height + bulletSize/2) {
         projectileStorage[i].vy *= -1;
       }
+
       else if (projectileStorage[i].x <= 0 - bulletSize/2 || projectileStorage[i].x >= width + bulletSize/2) {
         projectileStorage[i].vx *= -1;
       }
-    
 
       if (millis() - projectileStorage[i].lifetime >= bulletLife) {
         projectileStorage.splice(i,1);
@@ -269,15 +306,15 @@ function castProjectile() {
     }
   }
 
-
   else if (curModeState === modeStates[2]) {
-    let beamCenterX = PlayerX + 1125 * cos(genAngle);
-    let beamCenterY = PlayerY + 1125 * sin(genAngle);
-    
+    let beamCenterX = PlayerX + 1135 * cos(genAngle);
+    let beamCenterY = PlayerY + 1135 * sin(genAngle);
     for (let i = projectileStorage.length - 1; i >= 0; i--) {
+
       push()
       translate(beamCenterX,beamCenterY);
       rotate(genAngle);
+      fill(projectileColor)
       rect(0, 0, projectileStorage[i].laserlength, projectileStorage[i].laserwidth);
       pop();
 
@@ -289,6 +326,7 @@ function castProjectile() {
           projectileStorage[i].laserwidth = 125
         }
       }
+
       else if (!isLaserOn) {
         projectileStorage[i].laserwidth -= projectileStorage[i].incrementsby
         projectileStorage[i].incrementsby *= 1.025
@@ -312,6 +350,7 @@ function changeSpeed() {
       projSpeed = 50;
     }
   }
+  
   else if (keyIsDown('x')) {
     projSpeed--;
     if (projSpeed < 10) {
@@ -320,10 +359,14 @@ function changeSpeed() {
   }
 }
 
-
 function offscreenCheck(x, y) {
   return x < 0 || x > width || y < 0 || y > height;
 }
 
-
-
+function displayInstructions() {
+  fill(0);
+  text('Scroll to switch modes', 50, 50);
+  text('Z or X to speed up or slow down bullets', 50, 60);
+  text('Mouse click to fire', 50, 70);
+  text('WASD to move around and SPACE to jump', 50, 80);
+}
