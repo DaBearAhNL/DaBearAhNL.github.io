@@ -1,15 +1,15 @@
 // Interactive Scene
 // Newell Devera
-// October 22, 2026
+// October 2, 2026
 //
 // Extra for Experts:
-// - describe what you did to take this project "above and beyond"
+// - For the extras for experts, I was able to use the scroll wheel to shift states, used atan2 function to aim the projectile, learned how to rotate objects.
 
 let PlayerDy = 0.5;
 let PlayerX, PlayerY;
 let PlayerSpeed = 10;
 
-let vertStates = [ "onGround", "midFall", "midJump"];
+let vertStates = ["onGround", "midFall", "midJump"];
 let PlrVertState;
 
 const GRAVITY = 2.25;
@@ -38,6 +38,8 @@ let storedTime = 0;
 let shotgunAmnt = 8;
 let isLaserOn = false;
 
+
+// SETUP FUNCTION
 async function setup() {
   createCanvas(windowWidth, windowHeight);
   noStroke();
@@ -48,6 +50,8 @@ async function setup() {
   rectMode(CENTER);
 }
 
+
+// DRAW LOOP
 function draw() {
 
   background(220);
@@ -71,8 +75,7 @@ function draw() {
 }
 
 
-
-// Base Entity Horizontal Movements
+// BASE PLAYER HORIZONTAL MOVEMENTS AND RESTRICTIONS
 function plrBaseHorizMovement() {
 
   if (keyIsDown('a')) {
@@ -96,8 +99,7 @@ function horizBorders() {
 }
 
 
-
-// Base Entity Vertical Movements
+// BASE PLAYER VERTICAL MOVEMENTS AND RESTRICTIONS
 function plrBaseVertMovements() {
 
   if (PlrVertState === vertStates[0] && keyIsDown(' ')) {
@@ -135,8 +137,7 @@ function gravitySim() {
 }
 
 
-
-// Shifting Gun Modes
+// SWITCHING GUN MODES
 function mouseWheel() {
 
   modeStateCount += 1;
@@ -147,6 +148,8 @@ function mouseWheel() {
   isLaserOn = false;
 }
 
+
+// CHANGING GUN AND PELLET COLORS (why did the last part take longer than making the beam mode)
 function changeGunColor() {
 
   if (curModeState === modeStates[0]) {
@@ -183,6 +186,8 @@ function changeGunColor() {
   }
 }
 
+
+// CALCULATING PLACE TO AIM
 function displayGunHand(x, y, handPlacement, gunPlacement) {
 
   genAngle = atan2(mouseY - y, mouseX - x);
@@ -205,11 +210,7 @@ function displayGunHand(x, y, handPlacement, gunPlacement) {
 }
 
 
-
-
-
-
-// Casting projectiles
+// INITIATING PROJECTILES
 function mousePressed() {
 
   if (curModeState === modeStates[0]) {
@@ -260,10 +261,7 @@ function mousePressed() {
 }
 
 
-
-
-
-
+// RENDERING PROJECTILE
 function castProjectile() {
 
   if (curModeState === modeStates[0]) {
@@ -340,9 +338,7 @@ function castProjectile() {
 }
 
 
-
-// Miscellaenous or Extras
-
+// MISCELLANOUS OR EXTRAS
 function changeSpeed() {
   if (keyIsDown('z')) {
     projSpeed++;
@@ -350,7 +346,7 @@ function changeSpeed() {
       projSpeed = 50;
     }
   }
-  
+
   else if (keyIsDown('x')) {
     projSpeed--;
     if (projSpeed < 10) {
@@ -370,3 +366,5 @@ function displayInstructions() {
   text('Mouse click to fire', 50, 70);
   text('WASD to move around and SPACE to jump', 50, 80);
 }
+
+// mayafa ya huu huu (win them)
