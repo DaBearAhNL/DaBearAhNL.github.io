@@ -208,7 +208,7 @@ function mousePressed() {
     isLaserOn = !isLaserOn;
 
     let projectile = {
-      laserlength: 1250,
+      laserlength: 2000,
       laserwidth: 20,
 
       incrementsby: 1,
@@ -271,8 +271,8 @@ function castProjectile() {
 
 
   else if (curModeState === modeStates[2]) {
-    let beamCenterX = PlayerX + 750 * cos(genAngle);
-    let beamCenterY = PlayerY + 750 * sin(genAngle);
+    let beamCenterX = PlayerX + 1125 * cos(genAngle);
+    let beamCenterY = PlayerY + 1125 * sin(genAngle);
     
     for (let i = projectileStorage.length - 1; i >= 0; i--) {
       push()
