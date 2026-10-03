@@ -18,7 +18,7 @@ let projSpeed = 10;
 
 let handX,handY;
 let gunX, gunY;
-let genAngle, angleGun, angleHand, projAngle;
+let genAngle, projAngle;
 let gunColor;
 
 let modeStates = ["pellets", "shotgun", "beam"];
@@ -29,6 +29,7 @@ let projectileStorage = [];
 
 let storedTime = 0;
 let shotgunAmnt = 8;
+let isLaserOn = false;
 
 async function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -124,6 +125,8 @@ function mouseWheel() {
   modeStateCount = modeStateCount % (modeStates.length);
   curModeState = modeStates[modeStateCount]
 
+  projectileStorage = [];
+  isLaserOn = false;
   console.log(curModeState);
 }
 
@@ -142,25 +145,26 @@ function changeGunColor() {
 
 function displayGunHand(x, y, handPlacement, gunPlacement) {
   genAngle = atan2(mouseY - y, mouseX - x);
-  angleGun = genAngle;
-  angleHand = genAngle;
 
-  gunX = x + gunPlacement  * cos(angleGun);
-  gunY = y + gunPlacement * sin(angleGun);
+  gunX = x + gunPlacement  * cos(genAngle);
+  gunY = y + gunPlacement * sin(genAngle);
 
   push();
   translate(gunX,gunY);
-  rotate(angleGun);
+  rotate(genAngle);
   fill(gunColor);
   rect(0,0,50,35);
   pop();
 
-  handX = x + handPlacement  * cos(angleHand);
-  handY = y + handPlacement * sin(angleHand);
+  handX = x + handPlacement  * cos(genAngle);
+  handY = y + handPlacement * sin(genAngle);
 
   fill(gunColor);
   circle(handX,handY,SIZE/2);
 }
+
+
+
 
 
 
@@ -175,13 +179,13 @@ function mousePressed() {
       vx: cos(genAngle) * projSpeed,
       vy: sin(genAngle) * projSpeed,
     }
-
     projectileStorage.push(projectile);
+
   }
   else if (curModeState === modeStates[1]) {
     for (let i = 0; i < shotgunAmnt; i++) {
 
-      let angleVariation = angleGun;
+      let angleVariation = genAngle;
       angleVariation += random(-0.2, 0.2);
 
       let speedVariation = projSpeed;
@@ -195,15 +199,33 @@ function mousePressed() {
         vy: sin(angleVariation) * speedVariation,
 
         lifetime: millis(),
-    }
-
+      }
       projectileStorage.push(projectile);
     }
   }
+
+  else if (curModeState === modeStates[2]) {
+    isLaserOn = !isLaserOn;
+
+    let projectile = {
+      laserlength: 1250,
+      laserwidth: 20,
+
+      incrementsby: 1,
+    }
+    projectileStorage.push(projectile);
+  
+  }
 }
+
+
+
+
+
 
 function castProjectile() {
   if (curModeState === modeStates[0]) {
+
     let bulletSize = 25;
     for (let i = projectileStorage.length - 1; i >= 0; i--) {
     
@@ -219,7 +241,9 @@ function castProjectile() {
       }
     }
   }
+
   else if (curModeState === modeStates[1]) {
+
     let bulletLife = 3000;
     let bulletSize = 15;
     for (let i = projectileStorage.length - 1; i >= 0; i--) {
@@ -242,7 +266,37 @@ function castProjectile() {
       if (millis() - projectileStorage[i].lifetime >= bulletLife) {
         projectileStorage.splice(i,1);
       }
+    }
+  }
 
+
+  else if (curModeState === modeStates[2]) {
+    let beamCenterX = PlayerX + 750 * cos(genAngle);
+    let beamCenterY = PlayerY + 750 * sin(genAngle);
+    
+    for (let i = projectileStorage.length - 1; i >= 0; i--) {
+      push()
+      translate(beamCenterX,beamCenterY);
+      rotate(genAngle);
+      rect(0, 0, projectileStorage[i].laserlength, projectileStorage[i].laserwidth);
+      pop();
+
+      if (isLaserOn) {
+        projectileStorage[i].laserwidth += projectileStorage[i].incrementsby
+        projectileStorage[i].incrementsby *= 1.025
+
+        if (projectileStorage[i].laserwidth > 125) {
+          projectileStorage[i].laserwidth = 125
+        }
+      }
+      else if (!isLaserOn) {
+        projectileStorage[i].laserwidth -= projectileStorage[i].incrementsby
+        projectileStorage[i].incrementsby *= 1.025
+
+        if (projectileStorage[i].laserwidth < 0) {
+          projectileStorage.splice(i, 1);
+        }
+      }
     }
   }
 }
@@ -264,8 +318,6 @@ function changeSpeed() {
       projSpeed = 10;
     }
   }
-
-  console.log(projSpeed);
 }
 
 
