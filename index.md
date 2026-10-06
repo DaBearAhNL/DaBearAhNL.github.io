@@ -7,6 +7,7 @@
 - [Square Around Edge of Screen](03-square)
 - [Millis Demo](04-millis)
 - [Traffic Light](05-trafficlights)
+- [Bouncing Circles](06-circle-bounce)
 
 ## Projects
 

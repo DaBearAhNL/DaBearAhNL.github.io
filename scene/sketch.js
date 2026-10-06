@@ -153,29 +153,29 @@ function mouseWheel() {
 function changeGunColor() {
 
   if (curModeState === modeStates[0]) {
-    gunColor = 'black'
+    gunColor = 'black';
   }
 
   else if (curModeState === modeStates[1]) {
     let interval = 100;
     if (millis() - storedTime >= interval) {
-     gunColor = color(random(0,55),random(0,55),random(0,55)); 
-     projectileColor = color(random(0,255),random(0,255),random(0,255)); 
-     storedTime = millis();
+      gunColor = color(random(0,55),random(0,55),random(0,55)); 
+      projectileColor = color(random(0,255),random(0,255),random(0,255)); 
+      storedTime = millis();
     }
   }
 
   else if (curModeState === modeStates[2]) {
     let gunColor1 = color(34,39,43);
     let gunColor2 = color(28,55,77);
-    let pelletColor1 = color(random(150,255),random(150,255),random(150,255))
-    let pelletColor2 = color(random(100,205),random(100,205),random(100,205))
+    let pelletColor1 = color(random(150,255),random(150,255),random(150,255));
+    let pelletColor2 = color(random(100,205),random(100,205),random(100,205));
 
-    projectileColor = lerpColor(pelletColor1,pelletColor2,colorProjectileCounter)
+    projectileColor = lerpColor(pelletColor1,pelletColor2,colorProjectileCounter);
     gunColor = lerpColor(gunColor1,gunColor2,colorGunCounter);
 
-    colorGunCounter += 0.005 * colorGunLerpDirection
-    colorProjectileCounter += 0.01 * colorGunLerpDirection
+    colorGunCounter += 0.005 * colorGunLerpDirection;
+    colorProjectileCounter += 0.01 * colorGunLerpDirection;
 
     if (colorGunCounter <= 0 && colorGunCounter < 1 || colorGunCounter >= 1) {
       colorGunLerpDirection *= -1;
