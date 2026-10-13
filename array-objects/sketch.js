@@ -10,7 +10,7 @@ async function setup() {
   createCanvas(windowWidth, windowHeight);
 }
 
-// i got no idea what to make YET
+// keestrok
 
 function draw() {
   background(220);

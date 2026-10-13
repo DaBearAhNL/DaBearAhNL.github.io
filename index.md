@@ -10,6 +10,7 @@
 - [Bouncing Circles](06-circle-bounce)
 - [Perlin Noise](07-noise)
 - [Terrain Generation](08-terrain)
+- [Collision Library Demo](09-collision)
 
 ## Projects
 
