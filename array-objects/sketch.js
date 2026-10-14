@@ -11,7 +11,7 @@
 
 
 let attackInputStorage = [];
-let allowedAttackInputs = ['k', 'l'];
+let allowedAttackInputs = ['k', 'l','m'];
 
 let movementInputStorage = [];
 let allowedMovementInputs = ['w', 'a', 's', 'd'];
@@ -19,7 +19,8 @@ let allowedMovementInputs = ['w', 'a', 's', 'd'];
 let testingAThing = ' ';
 let testingMThing = ' ';
 
-let storageOfThings = [];
+let attackSequenceStorage = [];
+let movementSequenceStorage = [];
 
 async function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -34,7 +35,34 @@ async function setup() {
 function draw() {
   background(220);
 
+  storeAllowedInputs();
+  determineAction();
 }
+
+
+function action1() {
+  console.log("OH MY GOD THIS WORKS");
+}
+
+
+
+function storeAllowedInputs() {
+  if (attackInputStorage.length >= 3) {
+    attackSequenceStorage.push(attackInputStorage.splice(0,3));
+    console.log(attackSequenceStorage);
+  }
+}
+
+function determineAction() {
+  let currentAction = attackSequenceStorage[0].join("");
+
+  let actions = {
+    'lkm' : action1(),
+  } ; 
+
+  actions[currentAction];
+}
+
 
 
 function keyPressed() {
@@ -51,15 +79,4 @@ function keyPressed() {
     movementInputStorage.push(testingMThing);
     console.log(movementInputStorage);
   }
-
-  if (key === ' ') {
-    if (attackInputStorage.length >= 3) {
-      storageOfThings.push(attackInputStorage.splice(0, 3));
-
-      console.log(storageOfThings[0]);
-      storageOfThings.splice(0,1);
-    }
-  }
 }
-
-
