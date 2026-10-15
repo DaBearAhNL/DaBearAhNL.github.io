@@ -40,27 +40,31 @@ function draw() {
 }
 
 
-function action1() {
-  console.log("OH MY GOD THIS WORKS");
-}
 
 
 
 function storeAllowedInputs() {
   if (attackInputStorage.length >= 3) {
-    attackSequenceStorage.push(attackInputStorage.splice(0,3));
-    console.log(attackSequenceStorage);
+
+    let getFirstThreeInputs = attackInputStorage.splice(0,3)
+    let firstItemCollective = getFirstThreeInputs.join('');
+
+    attackSequenceStorage.push(firstItemCollective);
+
+    
   }
 }
 
 function determineAction() {
-  let currentAction = attackSequenceStorage[0].join("");
+  let currentSequence = attackSequenceStorage.splice(0,1);
 
   let actions = {
-    'lkm' : action1(),
+    'kmk' : 'basic',
+    'lkm' : 'downslam',
+    'mkl' : 'uppercut',
   } ; 
 
-  actions[currentAction];
+  console.log(actions[currentSequence]);
 }
 
 
