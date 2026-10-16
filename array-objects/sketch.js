@@ -27,7 +27,6 @@ let lastMoveInpTime;
 const NO_INPUTS_DETECTED = 250;
 const TERMINATE_INPUT_STORAGE = 750;
 
-c;
 
 async function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -62,7 +61,7 @@ function processInputs() {
     'kll' : 'uptilt',
     'kmm' : 'dropkick',
   } ; 
-  console.log(atkActions[currentAtkSequence]);
+  // console.log(atkActions[currentAtkSequence]);
 
   if (movementInputStorage.length >= 3) {
     let getMoveFirstThreeInputs = movementInputStorage.splice(0,3);
