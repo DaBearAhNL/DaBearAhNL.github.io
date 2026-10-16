@@ -12,15 +12,22 @@
 
 let attackInputStorage = [];
 let allowedAttackInputs = ['k', 'l','m'];
+let testingAThing = ' ';
+let attackSequenceStorage = [];
+let isCurAtkInputting = false;
+let lastAtkInpTime;
 
 let movementInputStorage = [];
 let allowedMovementInputs = ['w', 'a', 's', 'd'];
-
-let testingAThing = ' ';
 let testingMThing = ' ';
-
-let attackSequenceStorage = [];
 let movementSequenceStorage = [];
+let isCurMoveInputting = false;
+let lastMoveInpTime;
+
+const NO_INPUTS_DETECTED = 250;
+const TERMINATE_INPUT_STORAGE = 750;
+
+c;
 
 async function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -35,52 +42,75 @@ async function setup() {
 function draw() {
   background(220);
 
-  storeAllowedInputs();
-  determineAction();
+  processInputs();
+  determineTimeSinceLastInput();
 }
 
 
 
-
-
-function storeAllowedInputs() {
+function processInputs() {
   if (attackInputStorage.length >= 3) {
+    let getAtkFirstThreeInputs = attackInputStorage.splice(0,3);
+    let firstAtkItemCollective = getAtkFirstThreeInputs.join('');
+    attackSequenceStorage.push(firstAtkItemCollective);
+  }
+  let currentAtkSequence = attackSequenceStorage.splice(0,1);
+  let atkActions = {
+    'lkm' : 'basic',
+    'kmk' : 'downslam',
+    'klk' : 'uppercut',
+    'kll' : 'uptilt',
+    'kmm' : 'dropkick',
+  } ; 
+  console.log(atkActions[currentAtkSequence]);
 
-    let getFirstThreeInputs = attackInputStorage.splice(0,3)
-    let firstItemCollective = getFirstThreeInputs.join('');
+  if (movementInputStorage.length >= 3) {
+    let getMoveFirstThreeInputs = movementInputStorage.splice(0,3);
+    let firstMoveItemCollective = getMoveFirstThreeInputs.join('');
+    movementSequenceStorage.push(firstMoveItemCollective);
+  }
+  let currentMoveSequence = movementSequenceStorage.splice(0,1);
+  let moveActions = {
+    'asd' : 'right-lesser-dash',
+    'awd' : 'right-greater-dash',
+    'dsa' : 'left-lesser-dash',
+    'dwa' : 'left-greater-dash',
+  } ; 
+  console.log(moveActions[currentMoveSequence]);
+}
 
-    attackSequenceStorage.push(firstItemCollective);
 
-    
+function determineTimeSinceLastInput() {
+  if (isCurAtkInputting === true && millis() >= lastAtkInpTime + NO_INPUTS_DETECTED) {
+    isCurAtkInputting = false;
+  }
+  else if (isCurAtkInputting === false && millis() >= lastAtkInpTime + TERMINATE_INPUT_STORAGE) {
+    attackInputStorage = [];
+  }
+
+  if (isCurMoveInputting === true && millis() >= lastMoveInpTime + NO_INPUTS_DETECTED) {
+    isCurMoveInputting = false;
+  }
+  else if (isCurMoveInputting === false && millis() >= lastMoveInpTime + TERMINATE_INPUT_STORAGE) {
+    movementInputStorage = [];
   }
 }
-
-function determineAction() {
-  let currentSequence = attackSequenceStorage.splice(0,1);
-
-  let actions = {
-    'kmk' : 'basic',
-    'lkm' : 'downslam',
-    'mkl' : 'uppercut',
-  } ; 
-
-  console.log(actions[currentSequence]);
-}
-
-
 
 function keyPressed() {
   if (allowedAttackInputs.includes(key)) {
     testingAThing = key;
+    isCurAtkInputting = true;
+    lastAtkInpTime = millis();
 
     attackInputStorage.push(testingAThing);
-    console.log(attackInputStorage);
   }
 
   if (allowedMovementInputs.includes(key)) {
     testingMThing = key;
+    isCurMoveInputting = true;
+    lastMoveInpTime = millis();
 
     movementInputStorage.push(testingMThing);
-    console.log(movementInputStorage);
   }
 }
+
