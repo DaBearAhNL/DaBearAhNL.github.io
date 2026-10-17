@@ -45,7 +45,9 @@ function draw() {
   determineTimeSinceLastInput();
 }
 
-
+function typeSomething() {
+  console.log('ITS WORKING');
+}
 
 function processInputs() {
   if (attackInputStorage.length >= 3) {
@@ -68,14 +70,19 @@ function processInputs() {
     let firstMoveItemCollective = getMoveFirstThreeInputs.join('');
     movementSequenceStorage.push(firstMoveItemCollective);
   }
-  let currentMoveSequence = movementSequenceStorage.splice(0,1);
+  let currentMoveSequence = movementSequenceStorage.splice(0,1)[0];
   let moveActions = {
-    'asd' : 'right-lesser-dash',
+    'asd' : typeSomething,
     'awd' : 'right-greater-dash',
     'dsa' : 'left-lesser-dash',
     'dwa' : 'left-greater-dash',
   } ; 
-  console.log(moveActions[currentMoveSequence]);
+  
+
+
+  if (moveActions[currentMoveSequence]) {
+    moveActions[currentMoveSequence]();
+  }
 }
 
 
