@@ -24,8 +24,17 @@ let movementSequenceStorage = [];
 let isCurMoveInputting = false;
 let lastMoveInpTime;
 
+
+
+let inputtedHitbox;
+let hitboxBirthTime = 0;
+
 let hitboxes = {
   basic : {
+    offset : 75,
+    height : 50,
+    width : 100,
+    hitbox_lifetime : 100
 
   } ,
   uppercut : {
@@ -40,7 +49,7 @@ let hitboxes = {
   dropkick : {
 
   }
-}
+} ; 
 
 
 
@@ -48,9 +57,10 @@ let entity;
 
 const NO_INPUTS_DETECTED = 250;
 const TERMINATE_INPUT_STORAGE = 750;
-
 const SIZE = 75;
 const GRAVITY = 2.25;
+
+
 
 
 async function setup() {
@@ -66,10 +76,9 @@ async function setup() {
       isattacking : false,
 
       vertstates : ['onGround', 'midFall', 'midJump'],
-      curvertstate : ' ',
+      curvertstate : null,
 
-      facedir : ['left', 'right'],
-      curface : ' ',
+      facedir : 1,
 
       walkspeed : 10,
 
@@ -94,6 +103,8 @@ function draw() {
   background(220);
 
   processInputs();
+  displayHitbox(inputtedHitbox);
+
   determineTimeSinceLastInput();
 
   spawnEntities();
@@ -139,9 +150,11 @@ function playerSettings() {
   // base horizontal movement settings
   if (keyIsDown('a')) {
     entity.player.x -= entity.player.walkspeed
+    entity.player.facedir = -1
   }
   if (keyIsDown('d')) {
     entity.player.x += entity.player.walkspeed
+    entity.player.facedir = 1
   }
 
   // base vertical movement settings
@@ -168,13 +181,27 @@ function processInputs() {
   }
   let currentAtkSequence = attackSequenceStorage.splice(0,1);
   let atkActions = {
-    'lkm' : 'basic',
+    'lkm' : hitboxes.basic,
     'kmk' : 'downslam',
     'klk' : 'uppercut',
     'kll' : 'uptilt',
     'kmm' : 'dropkick',
   } ; 
-  // console.log(atkActions[currentAtkSequence]);
+
+  if (currentAtkSequence && atkActions[currentAtkSequence]) {
+    inputtedHitbox = atkActions[currentAtkSequence];
+    hitboxBirthTime = millis();
+    entity.player.isattacking = true;
+  }
+
+
+
+ 
+  
+
+
+
+
 
   if (movementInputStorage.length >= 3) {
     let getMoveFirstThreeInputs = movementInputStorage.splice(0,3);
@@ -190,15 +217,23 @@ function processInputs() {
   } ; 
   
 
-  console.log(moveActions[currentMoveSequence]);
-  // if (moveActions[currentMoveSequence]) {
-  //   moveActions[currentMoveSequence]();
-  // }
 }
 
-function pullHitboxSettings() {
 
+
+function displayHitbox(input) {
+  if (input && millis() < hitboxBirthTime + input.hitbox_lifetime && entity.player.isattacking) {
+    rect((input.offset * entity.player.facedir) + entity.player.x, entity.player.y, input.width, input.height);
+  }
+  else {
+    inputtedHitbox = null;
+    entity.player.isattacking = false;
+  }
 }
+
+
+
+
 
 function determineTimeSinceLastInput() {
   if (isCurAtkInputting === true && millis() >= lastAtkInpTime + NO_INPUTS_DETECTED) {
