@@ -42,13 +42,15 @@ let hitboxes = {
   }
 }
 
-const SIZE = 50;
+
 
 let entity;
 
-
 const NO_INPUTS_DETECTED = 250;
 const TERMINATE_INPUT_STORAGE = 750;
+
+const SIZE = 75;
+const GRAVITY = 2.25;
 
 
 async function setup() {
@@ -56,11 +58,23 @@ async function setup() {
   createCanvas(windowWidth, windowHeight);
 
   entity  = {
-    
-
     player : {
       x : width - (width/3)*2,
-      y : height - SIZE/2,
+      y : 50,
+
+      ismoving : false,
+      isattacking : false,
+
+      vertstates : ['onGround', 'midFall', 'midJump'],
+      curvertstate : ' ',
+
+      facedir : ['left', 'right'],
+      curface : ' ',
+
+      walkspeed : 10,
+
+      vx : 0,
+      vy : 0,
 
     } ,
     dummy : {
@@ -83,6 +97,7 @@ function draw() {
   determineTimeSinceLastInput();
 
   spawnEntities();
+  playerSettings();
 }
 
 
@@ -92,6 +107,57 @@ function spawnEntities() {
   square(entity.player.x, entity.player.y, SIZE);
   square(entity.dummy.x, entity.dummy.y, SIZE);
 }
+
+function playerSettings() {
+
+  // collision restricitons
+  if (entity.player.x + SIZE/2 > width) {
+    entity.player.x = width - SIZE/2;
+  }
+  else if (entity.player.x - SIZE/2 < 0) {
+    entity.player.x = 0 + SIZE/2;
+  }
+
+  if (entity.player.y + SIZE/2 > height) {
+    entity.player.curvertstate = entity.player.vertstates[0],
+    entity.player.y = height - SIZE/2;
+    entity.player.vy = 0;
+  }
+  else if (entity.player.y - SIZE/2 < 0) {
+    entity.player.y = 0 + SIZE/2;
+    entity.player.vy = 0;
+  }
+
+  // detect vertstates
+  if (entity.player.vy <= 0 && entity.player.y + SIZE < height) {
+    entity.player.curvertstate = entity.player.vertstates[2];
+  }
+  else if (entity.player.vy > 0 && entity.player.y + SIZE < height) {
+    entity.player.curvertstate = entity.player.vertstates[1];
+  }
+
+  // base horizontal movement settings
+  if (keyIsDown('a')) {
+    entity.player.x -= entity.player.walkspeed
+  }
+  if (keyIsDown('d')) {
+    entity.player.x += entity.player.walkspeed
+  }
+
+  // base vertical movement settings
+  if (entity.player.curvertstate === entity.player.vertstates[0] && keyIsDown(' ')) {
+    entity.player.vy -= 15;
+  }
+  if (entity.player.curvertstate === entity.player.vertstates[2] && keyIsDown(' ')) {
+    entity.player.vy -= 1;
+  }
+
+  // gravity sim
+  entity.player.vy += GRAVITY;
+  entity.player.y += entity.player.vy;
+}
+
+
 
 
 function processInputs() {
