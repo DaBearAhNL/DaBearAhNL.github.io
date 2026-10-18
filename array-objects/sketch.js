@@ -24,12 +24,51 @@ let movementSequenceStorage = [];
 let isCurMoveInputting = false;
 let lastMoveInpTime;
 
+let hitboxes = {
+  basic : {
+
+  } ,
+  uppercut : {
+
+  } , 
+  downslam : {
+
+  } ,
+  uptilt : {
+
+  } ,
+  dropkick : {
+
+  }
+}
+
+const SIZE = 50;
+
+let entity;
+
+
 const NO_INPUTS_DETECTED = 250;
 const TERMINATE_INPUT_STORAGE = 750;
 
 
 async function setup() {
+  rectMode(CENTER);
   createCanvas(windowWidth, windowHeight);
+
+  entity  = {
+    
+
+    player : {
+      x : width - (width/3)*2,
+      y : height - SIZE/2,
+
+    } ,
+    dummy : {
+      x : 0 + (width/3)*2,
+      y : height - SIZE/2,
+
+    }
+}
 
   rectMode(CENTER);
   imageMode(CENTER);
@@ -37,17 +76,23 @@ async function setup() {
 }
 
 
-
 function draw() {
   background(220);
 
   processInputs();
   determineTimeSinceLastInput();
+
+  spawnEntities();
 }
 
-function typeSomething() {
-  console.log('ITS WORKING');
+
+
+
+function spawnEntities() {
+  square(entity.player.x, entity.player.y, SIZE);
+  square(entity.dummy.x, entity.dummy.y, SIZE);
 }
+
 
 function processInputs() {
   if (attackInputStorage.length >= 3) {
@@ -72,19 +117,22 @@ function processInputs() {
   }
   let currentMoveSequence = movementSequenceStorage.splice(0,1)[0];
   let moveActions = {
-    'asd' : typeSomething,
+    'asd' : 'somethingelse',
     'awd' : 'right-greater-dash',
     'dsa' : 'left-lesser-dash',
     'dwa' : 'left-greater-dash',
   } ; 
   
 
-
-  if (moveActions[currentMoveSequence]) {
-    moveActions[currentMoveSequence]();
-  }
+  console.log(moveActions[currentMoveSequence]);
+  // if (moveActions[currentMoveSequence]) {
+  //   moveActions[currentMoveSequence]();
+  // }
 }
 
+function pullHitboxSettings() {
+
+}
 
 function determineTimeSinceLastInput() {
   if (isCurAtkInputting === true && millis() >= lastAtkInpTime + NO_INPUTS_DETECTED) {
@@ -101,6 +149,8 @@ function determineTimeSinceLastInput() {
     movementInputStorage = [];
   }
 }
+
+
 
 function keyPressed() {
   if (allowedAttackInputs.includes(key)) {
