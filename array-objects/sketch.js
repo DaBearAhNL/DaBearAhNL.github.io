@@ -135,7 +135,7 @@ let movementtech = {
     vx : 0,
     vy : 0
   }
-}
+} ;
 
 let entity;
 
@@ -149,7 +149,7 @@ async function setup() {
 
   entity  = {
     player : {
-      x : width - (width/3)*2,
+      x : width - width/3*2,
       y : 50,
 
       ismovingtech : false,
@@ -167,7 +167,7 @@ async function setup() {
 
     } ,
     dummy : {
-      x : 0 + (width/3)*2,
+      x : 0 + width/3*2,
       y : height - SIZE/2,
 
       isonkb : false,
@@ -178,8 +178,8 @@ async function setup() {
       vx : 0,
       vy : 0,
 
-    }
-} ;
+    } 
+  } ;
 
   rectMode(CENTER);
   imageMode(CENTER);
@@ -251,12 +251,12 @@ function entitySettings() {
 function playerSettings() {
   // base horizontal movement settings
   if (keyIsDown('a')) {
-    entity.player.x -= entity.player.walkspeed
-    entity.player.facedir = -1
+    entity.player.x -= entity.player.walkspeed;
+    entity.player.facedir = -1;
   }
   if (keyIsDown('d')) {
-    entity.player.x += entity.player.walkspeed
-    entity.player.facedir = 1
+    entity.player.x += entity.player.walkspeed;
+    entity.player.facedir = 1;
   }
 
   // base vertical movement settings
@@ -324,25 +324,13 @@ function processInputs() {
 
 function displayHitbox(input) {
   if (input && millis() < hitboxBirthTime + input.hitbox_lifetime && entity.player.isattacking) {
-
-  
-    
-    entity.player.x += input.vx * entity.player.facedir;
-    entity.player.y += input.vy;
-    rect((input.offset * entity.player.facedir) + entity.player.x, entity.player.y, input.width, input.height);
-
+    rect(input.offset * entity.player.facedir + entity.player.x, entity.player.y, input.width, input.height);
     console.log(input.vy);
   }
   else {
-    
-    
-
     inputtedHitbox = null;
     entity.player.isattacking = false;
-
-    
   }
-
 }
 
 function affectDummy(input) {
@@ -376,7 +364,7 @@ function determineTimeSinceLastInput() {
 
 function keyPressed() {
   if (!entity.player.isattacking) { 
-     if (allowedAttackInputs.includes(key)) {
+    if (allowedAttackInputs.includes(key)) {
       testingAThing = key;
       isCurAtkInputting = true;
       lastAtkInpTime = millis();
