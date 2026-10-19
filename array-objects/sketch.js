@@ -9,6 +9,11 @@
 // problem is its not a fighting game without hitting something
 // a.
 
+const NO_INPUTS_DETECTED = 250;
+const TERMINATE_INPUT_STORAGE = 750;
+const SIZE = 75;
+const GRAVITY = 2.25;
+const KB_RESIST = null;
 
 let attackInputStorage = [];
 let allowedAttackInputs = ['k', 'l','m'];
@@ -34,7 +39,10 @@ let hitboxes = {
     offset : 75,
     height : 50,
     width : 100,
-    hitbox_lifetime : 100
+    hitbox_lifetime : 100,
+
+    movex : 7.5,
+    movey : 1,
 
   } ,
   uppercut : {
@@ -51,14 +59,30 @@ let hitboxes = {
   }
 } ; 
 
+let inputtedMovementTech;
+let mtechBirthTime = 0;
 
+let movementtech = {
+  greatdashr : {
+    vx : 0,
+    vy : 0
+  },
+  greatdashl : {
+    vx : 0,
+    vy : 0
+  },
+  lesserdashr : {
+    vx : 0,
+    vy : 0
+  },
+  lesserdashr : {
+    vx : 0,
+    vy : 0
+  }
+}
 
 let entity;
 
-const NO_INPUTS_DETECTED = 250;
-const TERMINATE_INPUT_STORAGE = 750;
-const SIZE = 75;
-const GRAVITY = 2.25;
 
 
 
@@ -72,7 +96,7 @@ async function setup() {
       x : width - (width/3)*2,
       y : 50,
 
-      ismoving : false,
+      ismovingtech : false,
       isattacking : false,
 
       vertstates : ['onGround', 'midFall', 'midJump'],
@@ -90,8 +114,16 @@ async function setup() {
       x : 0 + (width/3)*2,
       y : height - SIZE/2,
 
+      isonkb : false,
+
+      vertstates : ['onGround', 'midFall', 'midJump'],
+      curvertstate : null,
+
+      vx : 0,
+      vy : 0,
+
     }
-}
+} ;
 
   rectMode(CENTER);
   imageMode(CENTER);
@@ -108,8 +140,17 @@ function draw() {
   determineTimeSinceLastInput();
 
   spawnEntities();
-  playerSettings();
+  entitySettings();
+  if (!entity.player.isattacking) {
+    playerSettings();
+    
+  }
+  gravitySim();
+
 }
+
+
+
 
 
 
@@ -119,34 +160,35 @@ function spawnEntities() {
   square(entity.dummy.x, entity.dummy.y, SIZE);
 }
 
+function entitySettings() {
+  let entities = [entity.player, entity.dummy];
+  for (let objects of entities) {
+    if (objects.x + SIZE/2 > width) {
+      objects.x = width - SIZE/2;
+    }
+    else if (objects.x - SIZE/2 < 0) {
+      objects.x = 0 + SIZE/2;
+    }
+    if (objects.y + SIZE/2 > height) {
+      objects.curvertstate = objects.vertstates[0],
+      objects.y = height - SIZE/2;
+      objects.vy = 0;
+    }
+    else if (objects.y - SIZE/2 < 0) {
+      objects.y = 0 + SIZE/2;
+      objects.vy = 0;
+    }
+
+    if (objects.vy <= 0 && objects.y + SIZE < height) {
+      objects.curvertstate = objects.vertstates[2];
+    }
+    else if (objects.vy > 0 && objects.y + SIZE < height) {
+      objects.curvertstate = objects.vertstates[1];
+    }
+  }
+}
+  
 function playerSettings() {
-
-  // collision restricitons
-  if (entity.player.x + SIZE/2 > width) {
-    entity.player.x = width - SIZE/2;
-  }
-  else if (entity.player.x - SIZE/2 < 0) {
-    entity.player.x = 0 + SIZE/2;
-  }
-
-  if (entity.player.y + SIZE/2 > height) {
-    entity.player.curvertstate = entity.player.vertstates[0],
-    entity.player.y = height - SIZE/2;
-    entity.player.vy = 0;
-  }
-  else if (entity.player.y - SIZE/2 < 0) {
-    entity.player.y = 0 + SIZE/2;
-    entity.player.vy = 0;
-  }
-
-  // detect vertstates
-  if (entity.player.vy <= 0 && entity.player.y + SIZE < height) {
-    entity.player.curvertstate = entity.player.vertstates[2];
-  }
-  else if (entity.player.vy > 0 && entity.player.y + SIZE < height) {
-    entity.player.curvertstate = entity.player.vertstates[1];
-  }
-
   // base horizontal movement settings
   if (keyIsDown('a')) {
     entity.player.x -= entity.player.walkspeed
@@ -164,10 +206,14 @@ function playerSettings() {
   if (entity.player.curvertstate === entity.player.vertstates[2] && keyIsDown(' ')) {
     entity.player.vy -= 1;
   }
+}
 
-  // gravity sim
+function gravitySim() {
   entity.player.vy += GRAVITY;
   entity.player.y += entity.player.vy;
+
+  entity.dummy.vy += GRAVITY;
+  entity.dummy.y += entity.dummy.vy;
 }
 
 
@@ -187,20 +233,11 @@ function processInputs() {
     'kll' : 'uptilt',
     'kmm' : 'dropkick',
   } ; 
-
   if (currentAtkSequence && atkActions[currentAtkSequence]) {
     inputtedHitbox = atkActions[currentAtkSequence];
     hitboxBirthTime = millis();
     entity.player.isattacking = true;
   }
-
-
-
- 
-  
-
-
-
 
 
   if (movementInputStorage.length >= 3) {
@@ -215,7 +252,11 @@ function processInputs() {
     'dsa' : 'left-lesser-dash',
     'dwa' : 'left-greater-dash',
   } ; 
-  
+  if (currentMoveSequence && moveActions[currentMoveSequence]) {
+    inputtedMovementTech = moveActions[currentMoveSequence];
+    mtechBirthTime = millis();
+    entity.player.ismovingtech = true;
+  }
 
 }
 
@@ -224,12 +265,22 @@ function processInputs() {
 function displayHitbox(input) {
   if (input && millis() < hitboxBirthTime + input.hitbox_lifetime && entity.player.isattacking) {
     rect((input.offset * entity.player.facedir) + entity.player.x, entity.player.y, input.width, input.height);
+    entity.player.x += input.movex * entity.player.facedir;
   }
   else {
     inputtedHitbox = null;
     entity.player.isattacking = false;
   }
+
+  console.log(entity.player.isattacking)
 }
+
+function affectDummy(input) {
+
+}
+
+
+
 
 
 
@@ -254,20 +305,23 @@ function determineTimeSinceLastInput() {
 
 
 function keyPressed() {
-  if (allowedAttackInputs.includes(key)) {
-    testingAThing = key;
-    isCurAtkInputting = true;
-    lastAtkInpTime = millis();
+  if (!entity.player.isattacking) { 
+     if (allowedAttackInputs.includes(key)) {
+      testingAThing = key;
+      isCurAtkInputting = true;
+      lastAtkInpTime = millis();
 
-    attackInputStorage.push(testingAThing);
+      attackInputStorage.push(testingAThing);
+    }
+
+    if (allowedMovementInputs.includes(key)) {
+      testingMThing = key;
+      isCurMoveInputting = true;
+      lastMoveInpTime = millis();
+
+      movementInputStorage.push(testingMThing);
+    }
   }
-
-  if (allowedMovementInputs.includes(key)) {
-    testingMThing = key;
-    isCurMoveInputting = true;
-    lastMoveInpTime = millis();
-
-    movementInputStorage.push(testingMThing);
-  }
+ 
 }
 
