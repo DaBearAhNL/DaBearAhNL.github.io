@@ -41,8 +41,8 @@ let hitboxes = {
     width : 100,
     hitbox_lifetime : 100,
 
-    movex : 7.5,
-    movey : 1,
+    movex : 6,
+    movey : -1,
 
   } ,
   uppercut : {
@@ -146,6 +146,9 @@ function draw() {
     
   }
   gravitySim();
+ 
+
+  console.log(attackInputStorage);
 
 }
 
@@ -264,15 +267,16 @@ function processInputs() {
 
 function displayHitbox(input) {
   if (input && millis() < hitboxBirthTime + input.hitbox_lifetime && entity.player.isattacking) {
-    rect((input.offset * entity.player.facedir) + entity.player.x, entity.player.y, input.width, input.height);
+    
     entity.player.x += input.movex * entity.player.facedir;
+    entity.player.y += input.movey;
+    rect((input.offset * entity.player.facedir) + entity.player.x, entity.player.y, input.width, input.height);
   }
   else {
     inputtedHitbox = null;
     entity.player.isattacking = false;
   }
 
-  console.log(entity.player.isattacking)
 }
 
 function affectDummy(input) {
