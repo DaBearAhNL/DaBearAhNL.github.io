@@ -15,6 +15,7 @@ const SIZE = 75;
 const GRAVITY = 2.25;
 const KB_RESIST = null;
 
+
 let attackInputStorage = [];
 let allowedAttackInputs = ['k', 'l','m'];
 let testingAThing = ' ';
@@ -41,20 +42,75 @@ let hitboxes = {
     width : 100,
     hitbox_lifetime : 100,
 
-    movex : 6,
-    movey : -1,
+    storedvx : 6,
+    storedvy : -1,
+    
+    vx : 6,
+    vy : -1,
+
+    air_resist : 0
 
   } ,
   uppercut : {
+    offset : 75,
+    height : 50,
+    width : 100,
+    hitbox_lifetime : 100,
+
+    storedvx : 35,
+    storedvy : -70,
+
+    vx : 6,
+    vy : -1,
+
+    air_resist : 0
 
   } , 
   downslam : {
+    offset : 75,
+    height : 50,
+    width : 100,
+    hitbox_lifetime : 100,
+
+    storedvx : 35,
+    storedvy : -70,
+
+    vx : 6,
+    vy : -1,
+
+    air_resist : 0
 
   } ,
   uptilt : {
+    offset : 75,
+    height : 50,
+    width : 100,
+    hitbox_lifetime : 200,
+
+    storedvx : 35,
+    storedvy : -90,
+
+    vx : 35,
+    vy : -90,
+
+    air_resist : 0.9
+
 
   } ,
   dropkick : {
+    offset : 75,
+    height : 50,
+    width : 100,
+    hitbox_lifetime : 100,
+
+    storedvx : 35,
+    storedvy : 70,
+
+    vx : 35,
+    vy : 70,
+
+    air_resist :   1.5
+
 
   }
 } ; 
@@ -143,9 +199,10 @@ function draw() {
   entitySettings();
   if (!entity.player.isattacking) {
     playerSettings();
+    gravitySim();
     
   }
-  gravitySim();
+  
  
 
   console.log(attackInputStorage);
@@ -231,10 +288,10 @@ function processInputs() {
   let currentAtkSequence = attackSequenceStorage.splice(0,1);
   let atkActions = {
     'lkm' : hitboxes.basic,
-    'kmk' : 'downslam',
-    'klk' : 'uppercut',
-    'kll' : 'uptilt',
-    'kmm' : 'dropkick',
+    'kmk' : hitboxes.downslam,
+    'klk' : hitboxes.uppercut,
+    'kll' : hitboxes.uptilt,
+    'kmm' : hitboxes.dropkick,
   } ; 
   if (currentAtkSequence && atkActions[currentAtkSequence]) {
     inputtedHitbox = atkActions[currentAtkSequence];
@@ -267,14 +324,23 @@ function processInputs() {
 
 function displayHitbox(input) {
   if (input && millis() < hitboxBirthTime + input.hitbox_lifetime && entity.player.isattacking) {
+
+  
     
-    entity.player.x += input.movex * entity.player.facedir;
-    entity.player.y += input.movey;
+    entity.player.x += input.vx * entity.player.facedir;
+    entity.player.y += input.vy;
     rect((input.offset * entity.player.facedir) + entity.player.x, entity.player.y, input.width, input.height);
+
+    console.log(input.vy);
   }
   else {
+    
+    
+
     inputtedHitbox = null;
     entity.player.isattacking = false;
+
+    
   }
 
 }
