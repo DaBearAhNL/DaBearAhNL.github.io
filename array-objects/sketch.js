@@ -41,13 +41,10 @@ let hitboxes = {
     height : 50,
     width : 100,
     hitbox_lifetime : 100,
-
     storedvx : 6,
     storedvy : -1,
-    
     vx : 6,
     vy : -1,
-
     air_resist : 0
 
   } ,
@@ -56,13 +53,10 @@ let hitboxes = {
     height : 50,
     width : 100,
     hitbox_lifetime : 100,
-
     storedvx : 35,
     storedvy : -70,
-
     vx : 6,
     vy : -1,
-
     air_resist : 0
 
   } , 
@@ -71,13 +65,10 @@ let hitboxes = {
     height : 50,
     width : 100,
     hitbox_lifetime : 100,
-
     storedvx : 35,
     storedvy : -70,
-
     vx : 6,
     vy : -1,
-
     air_resist : 0
 
   } ,
@@ -86,13 +77,10 @@ let hitboxes = {
     height : 50,
     width : 100,
     hitbox_lifetime : 200,
-
-    storedvx : 35,
-    storedvy : -90,
-
-    vx : 35,
-    vy : -90,
-
+    storedvx : 40,
+    storedvy : -20,
+    vx : 40,
+    vy : -20,
     air_resist : 0.9
 
 
@@ -102,15 +90,11 @@ let hitboxes = {
     height : 50,
     width : 100,
     hitbox_lifetime : 100,
-
     storedvx : 35,
     storedvy : 70,
-
     vx : 35,
     vy : 70,
-
-    air_resist :   1.5
-
+    air_resist : 0.85
 
   }
 } ; 
@@ -151,17 +135,12 @@ async function setup() {
     player : {
       x : width - width/3*2,
       y : 50,
-
       ismovingtech : false,
       isattacking : false,
-
       vertstates : ['onGround', 'midFall', 'midJump'],
       curvertstate : null,
-
       facedir : 1,
-
-      walkspeed : 10,
-
+      walkspeed : 7.5,
       vx : 0,
       vy : 0,
 
@@ -169,15 +148,11 @@ async function setup() {
     dummy : {
       x : 0 + width/3*2,
       y : height - SIZE/2,
-
       isonkb : false,
-
       vertstates : ['onGround', 'midFall', 'midJump'],
       curvertstate : null,
-
       vx : 0,
       vy : 0,
-
     } 
   } ;
 
@@ -190,22 +165,26 @@ async function setup() {
 function draw() {
   background(220);
 
-  processInputs();
-  displayHitbox(inputtedHitbox);
-
-  determineTimeSinceLastInput();
+  
 
   spawnEntities();
-  entitySettings();
+  
+
   if (!entity.player.isattacking) {
     playerSettings();
     gravitySim();
-    
   }
   
+  processInputs();
+  displayHitbox(inputtedHitbox);
+  plrMovementOnAtk(inputtedHitbox);
+
+  determineTimeSinceLastInput();
+
+  entitySettings();
  
 
-  console.log(attackInputStorage);
+  console.log(entity.player.y);
 
 }
 
@@ -299,7 +278,6 @@ function processInputs() {
     entity.player.isattacking = true;
   }
 
-
   if (movementInputStorage.length >= 3) {
     let getMoveFirstThreeInputs = movementInputStorage.splice(0,3);
     let firstMoveItemCollective = getMoveFirstThreeInputs.join('');
@@ -317,25 +295,40 @@ function processInputs() {
     mtechBirthTime = millis();
     entity.player.ismovingtech = true;
   }
-
 }
 
 
-
+// I SO NEED TO FIX THIS AREA WHEN I GET TO SPRITES AND STUFF OH GOD
 function displayHitbox(input) {
   if (input && millis() < hitboxBirthTime + input.hitbox_lifetime && entity.player.isattacking) {
     rect(input.offset * entity.player.facedir + entity.player.x, entity.player.y, input.width, input.height);
-    console.log(input.vy);
+    console.log(hitboxBirthTime);
   }
   else {
-    inputtedHitbox = null;
+    console.log(inputtedHitbox);
     entity.player.isattacking = false;
   }
 }
 
-function affectDummy(input) {
+function plrMovementOnAtk(input) {
+  if (input && millis() < hitboxBirthTime + input.hitbox_lifetime && entity.player.isattacking) {
+    entity.player.vy = 0;
+    input.vx = input.storedvx;
+    input.vy = input.storedvy;
+    entity.player.x += input.vx * entity.player.facedir;
+    entity.player.y += input.vy;
+  }
+  else if(input && millis() > hitboxBirthTime + input.hitbox_lifetime*1/2 && !entity.player.isattacking) {
+    input.vx *= input.air_resist;
+    input.vy *= input.air_resist;
+    entity.player.x += input.vx * entity.player.facedir;
+    entity.player.y += input.vy;
+  }
 
+  
 }
+
+
 
 
 
