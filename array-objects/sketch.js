@@ -14,6 +14,7 @@ const TERMINATE_INPUT_STORAGE = 750;
 const SIZE = 75;
 const GRAVITY = 2.25;
 const KB_RESIST = null;
+const INSURANCE = 2000;
 
 
 let attackInputStorage = [];
@@ -37,7 +38,8 @@ let hitboxBirthTime = 0;
 
 let hitboxes = {
   basic : {
-    offset : 75,
+    offsetx : 75,
+    offsety : 0,
     height : 50,
     width : 100,
     hitbox_lifetime : 100,
@@ -49,7 +51,8 @@ let hitboxes = {
 
   } ,
   uppercut : {
-    offset : 75,
+    offsetx : 75,
+    offsety : 0,
     height : 50,
     width : 100,
     hitbox_lifetime : 100,
@@ -61,7 +64,8 @@ let hitboxes = {
 
   } , 
   downslam : {
-    offset : 75,
+    offsetx : 75,
+    offsety : 0,
     height : 50,
     width : 100,
     hitbox_lifetime : 100,
@@ -73,28 +77,30 @@ let hitboxes = {
 
   } ,
   uptilt : {
-    offset : 75,
-    height : 50,
-    width : 100,
-    hitbox_lifetime : 200,
-    storedvx : 40,
-    storedvy : -20,
-    vx : 40,
-    vy : -20,
+    offsetx : 40,
+    offsety : -40,
+    height : SIZE,
+    width : SIZE,
+    hitbox_lifetime : 150,
+    storedvx : 20,
+    storedvy : -35,
+    vx : 20,
+    vy : -35,
     air_resist : 0.9
 
 
   } ,
   dropkick : {
-    offset : 75,
+    offsetx : 75,
+    offsety : 0,
     height : 50,
     width : 100,
-    hitbox_lifetime : 100,
-    storedvx : 35,
-    storedvy : 70,
-    vx : 35,
-    vy : 70,
-    air_resist : 0.85
+    hitbox_lifetime : 200,
+    storedvx : 15,
+    storedvy : 20,
+    vx : 15,
+    vy : 20,
+    air_resist : 0.95
 
   }
 } ; 
@@ -130,6 +136,7 @@ let entity;
 async function setup() {
   rectMode(CENTER);
   createCanvas(windowWidth, windowHeight);
+  noStroke();
 
   entity  = {
     player : {
@@ -165,27 +172,28 @@ async function setup() {
 function draw() {
   background(220);
 
-  
-
+ 
   spawnEntities();
-  
 
+  displayHitbox(inputtedHitbox);
+  processInputs();
+  
+  plrMovementOnAtk(inputtedHitbox);
+
+
+  
   if (!entity.player.isattacking) {
     playerSettings();
     gravitySim();
   }
   
-  processInputs();
-  displayHitbox(inputtedHitbox);
-  plrMovementOnAtk(inputtedHitbox);
-
   determineTimeSinceLastInput();
+  
+  
 
   entitySettings();
+  
  
-
-  console.log(entity.player.y);
-
 }
 
 
@@ -195,6 +203,7 @@ function draw() {
 
 
 function spawnEntities() {
+  fill('white');
   square(entity.player.x, entity.player.y, SIZE);
   square(entity.dummy.x, entity.dummy.y, SIZE);
 }
@@ -301,16 +310,18 @@ function processInputs() {
 // I SO NEED TO FIX THIS AREA WHEN I GET TO SPRITES AND STUFF OH GOD
 function displayHitbox(input) {
   if (input && millis() < hitboxBirthTime + input.hitbox_lifetime && entity.player.isattacking) {
-    rect(input.offset * entity.player.facedir + entity.player.x, entity.player.y, input.width, input.height);
-    console.log(hitboxBirthTime);
+    fill('red');
+    rect(input.offsetx * entity.player.facedir + entity.player.x, input.offsety + entity.player.y, input.width, input.height);
   }
   else {
-    console.log(inputtedHitbox);
+
     entity.player.isattacking = false;
   }
 }
 
 function plrMovementOnAtk(input) {
+
+  
   if (input && millis() < hitboxBirthTime + input.hitbox_lifetime && entity.player.isattacking) {
     entity.player.vy = 0;
     input.vx = input.storedvx;
@@ -318,11 +329,12 @@ function plrMovementOnAtk(input) {
     entity.player.x += input.vx * entity.player.facedir;
     entity.player.y += input.vy;
   }
-  else if(input && millis() > hitboxBirthTime + input.hitbox_lifetime*1/2 && !entity.player.isattacking) {
+  else if(input && !entity.player.isattacking) {
     input.vx *= input.air_resist;
     input.vy *= input.air_resist;
     entity.player.x += input.vx * entity.player.facedir;
     entity.player.y += input.vy;
+    console.log(input.vy);
   }
 
   
