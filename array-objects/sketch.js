@@ -81,7 +81,7 @@ let hitboxes = {
     offsety : -40,
     height : SIZE,
     width : SIZE,
-    hitbox_lifetime : 150,
+    hitbox_lifetime : 200,
     storedvx : 20,
     storedvy : -35,
     vx : 20,
@@ -95,7 +95,7 @@ let hitboxes = {
     offsety : 0,
     height : 50,
     width : 100,
-    hitbox_lifetime : 200,
+    hitbox_lifetime : 10,
     storedvx : 15,
     storedvy : 20,
     vx : 15,
@@ -136,7 +136,6 @@ let entity;
 async function setup() {
   rectMode(CENTER);
   createCanvas(windowWidth, windowHeight);
-  noStroke();
 
   entity  = {
     player : {
@@ -277,7 +276,7 @@ function processInputs() {
   let atkActions = {
     'lkm' : hitboxes.basic,
     'kmk' : hitboxes.downslam,
-    'klk' : hitboxes.uppercut,
+    'lkl' : hitboxes.uppercut,
     'kll' : hitboxes.uptilt,
     'kmm' : hitboxes.dropkick,
   } ; 
@@ -309,43 +308,36 @@ function processInputs() {
 
 // I SO NEED TO FIX THIS AREA WHEN I GET TO SPRITES AND STUFF OH GOD
 function displayHitbox(input) {
-  if (input && millis() < hitboxBirthTime + input.hitbox_lifetime && entity.player.isattacking) {
-    fill('red');
-    rect(input.offsetx * entity.player.facedir + entity.player.x, input.offsety + entity.player.y, input.width, input.height);
-  }
-  else {
-
-    entity.player.isattacking = false;
+  if (input) {
+    if (millis() <= hitboxBirthTime + input.hitbox_lifetime && entity.player.isattacking) {
+      fill('red');
+      rect(input.offsetx * entity.player.facedir + entity.player.x, input.offsety + entity.player.y, input.width, input.height);
+    }
+    else {
+      entity.player.isattacking = false;
+    }
   }
 }
 
 function plrMovementOnAtk(input) {
 
-  
-  if (input && millis() < hitboxBirthTime + input.hitbox_lifetime && entity.player.isattacking) {
-    entity.player.vy = 0;
-    input.vx = input.storedvx;
-    input.vy = input.storedvy;
-    entity.player.x += input.vx * entity.player.facedir;
-    entity.player.y += input.vy;
+  if (input) {
+    if (millis() < hitboxBirthTime + input.hitbox_lifetime && entity.player.isattacking) {
+      entity.player.vy = 0;
+      input.vx = input.storedvx;
+      input.vy = input.storedvy;
+      entity.player.x += input.vx * entity.player.facedir;
+      entity.player.y += input.vy;
+    }
+    else if(!entity.player.isattacking) {
+      input.vx *= input.air_resist;
+      input.vy *= input.air_resist;
+      entity.player.x += input.vx * entity.player.facedir;
+      entity.player.y += input.vy;
+      console.log(entity.player.vy);
+    }
   }
-  else if(input && !entity.player.isattacking) {
-    input.vx *= input.air_resist;
-    input.vy *= input.air_resist;
-    entity.player.x += input.vx * entity.player.facedir;
-    entity.player.y += input.vy;
-    console.log(input.vy);
-  }
-
-  
 }
-
-
-
-
-
-
-
 
 
 
