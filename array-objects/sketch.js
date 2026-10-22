@@ -32,6 +32,7 @@ let isCurMoveInputting = false;
 let lastMoveInpTime;
 
 
+let inputtedAction;
 
 let inputtedHitbox;
 let hitboxBirthTime = 0;
@@ -43,6 +44,7 @@ let hitboxes = {
     height : 50,
     width : 100,
     hitbox_lifetime : 100,
+    endlag : 50,
     storedvx : 6,
     storedvy : -1,
     vx : 6,
@@ -142,9 +144,11 @@ async function setup() {
       x : width - width/3*2,
       y : 50,
       ismovingtech : false,
+      movementstates : ['easein', 'easeout'],
       isattacking : false,
+      atkstates : ['windup', 'activeframes', 'endlag'],
       vertstates : ['onGround', 'midFall', 'midJump'],
-      curvertstate : null,
+      curvertstate : false,
       facedir : 1,
       walkspeed : 7.5,
       vx : 0,
@@ -174,10 +178,12 @@ function draw() {
  
   spawnEntities();
 
-  displayHitbox(inputtedHitbox);
+  
   processInputs();
   
-  plrMovementOnAtk(inputtedHitbox);
+  // plrMovementOnAtk(inputtedHitbox);
+  // displayHitbox(inputtedHitbox);
+  determinePlrActionStates(inputtedAction);
 
 
   
@@ -281,7 +287,7 @@ function processInputs() {
     'kmm' : hitboxes.dropkick,
   } ; 
   if (currentAtkSequence && atkActions[currentAtkSequence]) {
-    inputtedHitbox = atkActions[currentAtkSequence];
+    inputtedAction = atkActions[currentAtkSequence];
     hitboxBirthTime = millis();
     entity.player.isattacking = true;
   }
@@ -299,7 +305,7 @@ function processInputs() {
     'dwa' : 'left-greater-dash',
   } ; 
   if (currentMoveSequence && moveActions[currentMoveSequence]) {
-    inputtedMovementTech = moveActions[currentMoveSequence];
+    inputtedAction = moveActions[currentMoveSequence];
     mtechBirthTime = millis();
     entity.player.ismovingtech = true;
   }
@@ -307,6 +313,30 @@ function processInputs() {
 
 
 // I SO NEED TO FIX THIS AREA WHEN I GET TO SPRITES AND STUFF OH GOD
+
+function determinePlrActionStates(input) {
+  if (input in hitboxes) {
+    if (millis() <= hitboxBirthTime + input.hitbox_lifetime/4) {
+      entity.player.isattacking = entity.player.atkstates[0];
+      console.log('a');
+    }
+    else if (millis() <= hitboxBirthTime + input.hitbox_lifetime) {
+      entity.player.isattacking = entity.player.atkstates[1];
+      console.log('b');
+    }
+    else if (millis() <= hitboxBirthTime + input.hitbox_lifetime + input.endlag) {
+      console.log('c');
+    }
+
+
+  }
+  else if (input in movementtech) {
+  }
+
+
+  
+
+}
 function displayHitbox(input) {
   if (input) {
     if (millis() <= hitboxBirthTime + input.hitbox_lifetime && entity.player.isattacking) {
@@ -341,6 +371,8 @@ function plrMovementOnAtk(input) {
 
 
 
+
+
 function determineTimeSinceLastInput() {
   if (isCurAtkInputting === true && millis() >= lastAtkInpTime + NO_INPUTS_DETECTED) {
     isCurAtkInputting = false;
@@ -356,7 +388,6 @@ function determineTimeSinceLastInput() {
     movementInputStorage = [];
   }
 }
-
 
 
 function keyPressed() {
