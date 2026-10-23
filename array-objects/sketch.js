@@ -9,8 +9,8 @@
 // problem is its not a fighting game without hitting something
 // a.
 
-const NO_INPUTS_DETECTED = 250;
-const TERMINATE_INPUT_STORAGE = 750;
+const NO_INPUTS_DETECTED = 100;
+const TERMINATE_INPUT_STORAGE = 500;
 const SIZE = 75;
 const GRAVITY = 2.25;
 const KB_RESIST = null;
@@ -32,18 +32,18 @@ let isCurMoveInputting = false;
 let lastMoveInpTime;
 
 
-let inputtedAction;
 
 let inputtedHitbox;
 let hitboxBirthTime = 0;
 
 let hitboxes = {
   basic : {
-    offsetx : 75,
+    offsetx : SIZE+SIZE/1.95,
     offsety : 0,
-    height : 50,
-    width : 100,
-    hitbox_lifetime : 100,
+    height : SIZE,
+    width : SIZE*2,
+    windup : 35,
+    lifetime : 100,
     endlag : 50,
     storedvx : 6,
     storedvy : -1,
@@ -53,11 +53,13 @@ let hitboxes = {
 
   } ,
   uppercut : {
-    offsetx : 75,
-    offsety : 0,
-    height : 50,
-    width : 100,
-    hitbox_lifetime : 100,
+    offsetx : SIZE-SIZE/3,
+    offsety : -SIZE/2,
+    height : SIZE*2.25,
+    width : SIZE,
+    windup : 200,
+    lifetime : 300,
+    endlag : 200,
     storedvx : 35,
     storedvy : -70,
     vx : 6,
@@ -66,11 +68,13 @@ let hitboxes = {
 
   } , 
   downslam : {
-    offsetx : 75,
-    offsety : 0,
-    height : 50,
-    width : 100,
-    hitbox_lifetime : 100,
+    offsetx : SIZE-SIZE/3,
+    offsety : SIZE/2,
+    height : SIZE*2.25,
+    width : SIZE,
+    windup : 200,
+    lifetime : 300,
+    endlag : 200,
     storedvx : 35,
     storedvy : -70,
     vx : 6,
@@ -79,25 +83,29 @@ let hitboxes = {
 
   } ,
   uptilt : {
-    offsetx : 40,
-    offsety : -40,
-    height : SIZE,
-    width : SIZE,
-    hitbox_lifetime : 200,
+    offsetx : SIZE/1.5,
+    offsety : -SIZE/1.5,
+    height : SIZE*1.25,
+    width : SIZE*1.25,
+    windup : 0,
+    lifetime : 350,
+    endlag : 150,
     storedvx : 20,
-    storedvy : -35,
+    storedvy : -15,
     vx : 20,
-    vy : -35,
+    vy : -15,
     air_resist : 0.9
 
 
   } ,
   dropkick : {
-    offsetx : 75,
-    offsety : 0,
-    height : 50,
-    width : 100,
-    hitbox_lifetime : 10,
+    offsetx : SIZE/1.5,
+    offsety : SIZE/1.5,
+    height : SIZE*1.25,
+    width : SIZE*1.25,
+    windup : 0,
+    lifetime : 350,
+    endlag : 150,
     storedvx : 15,
     storedvy : 20,
     vx : 15,
@@ -130,9 +138,6 @@ let movementtech = {
 } ;
 
 let entity;
-
-
-//save
 
 
 async function setup() {
@@ -178,12 +183,14 @@ function draw() {
  
   spawnEntities();
 
-  
+  determineTimeSinceLastInput();
   processInputs();
   
-  // plrMovementOnAtk(inputtedHitbox);
-  // displayHitbox(inputtedHitbox);
-  determinePlrActionStates(inputtedAction);
+  determinePlrActionStates(inputtedHitbox);
+  displayHitbox(inputtedHitbox);
+  plrMovementOnAtk(inputtedHitbox);
+  
+  
 
 
   
@@ -192,11 +199,12 @@ function draw() {
     gravitySim();
   }
   
-  determineTimeSinceLastInput();
+  
   
   
 
   entitySettings();
+  
   
  
 }
@@ -287,7 +295,7 @@ function processInputs() {
     'kmm' : hitboxes.dropkick,
   } ; 
   if (currentAtkSequence && atkActions[currentAtkSequence]) {
-    inputtedAction = atkActions[currentAtkSequence];
+    inputtedHitbox = atkActions[currentAtkSequence];
     hitboxBirthTime = millis();
     entity.player.isattacking = true;
   }
@@ -305,7 +313,7 @@ function processInputs() {
     'dwa' : 'left-greater-dash',
   } ; 
   if (currentMoveSequence && moveActions[currentMoveSequence]) {
-    inputtedAction = moveActions[currentMoveSequence];
+    inputtedMovementTech = moveActions[currentMoveSequence];
     mtechBirthTime = millis();
     entity.player.ismovingtech = true;
   }
@@ -315,55 +323,57 @@ function processInputs() {
 // I SO NEED TO FIX THIS AREA WHEN I GET TO SPRITES AND STUFF OH GOD
 
 function determinePlrActionStates(input) {
-  if (input in hitboxes) {
-    if (millis() <= hitboxBirthTime + input.hitbox_lifetime/4) {
+  if (input) {
+    if (millis() <= hitboxBirthTime + input.windup) {
       entity.player.isattacking = entity.player.atkstates[0];
       console.log('a');
     }
-    else if (millis() <= hitboxBirthTime + input.hitbox_lifetime) {
+    else if (millis() <= hitboxBirthTime + input.windup + input.lifetime) {
       entity.player.isattacking = entity.player.atkstates[1];
       console.log('b');
     }
-    else if (millis() <= hitboxBirthTime + input.hitbox_lifetime + input.endlag) {
+    else if (millis() <= hitboxBirthTime + input.windup + input.lifetime + input.endlag) {
+      entity.player.isattacking = entity.player.atkstates[2];
+      
       console.log('c');
-    }
-
-
-  }
-  else if (input in movementtech) {
-  }
-
-
-  
-
-}
-function displayHitbox(input) {
-  if (input) {
-    if (millis() <= hitboxBirthTime + input.hitbox_lifetime && entity.player.isattacking) {
-      fill('red');
-      rect(input.offsetx * entity.player.facedir + entity.player.x, input.offsety + entity.player.y, input.width, input.height);
     }
     else {
       entity.player.isattacking = false;
+      inputtedHitbox = null;
     }
+  }
+}
+
+function displayHitbox(input) {
+  if (input) {
+    if (entity.player.isattacking === entity.player.atkstates[0]) {
+      fill('blue');
+      rect(input.offsetx * entity.player.facedir + entity.player.x, input.offsety + entity.player.y, input.width, input.height);
+    }
+    else if (entity.player.isattacking === entity.player.atkstates[1]) {
+      fill('red');
+      rect(input.offsetx * entity.player.facedir + entity.player.x, input.offsety + entity.player.y, input.width, input.height);
+    }
+    
   }
 }
 
 function plrMovementOnAtk(input) {
 
   if (input) {
-    if (millis() < hitboxBirthTime + input.hitbox_lifetime && entity.player.isattacking) {
+    if (entity.player.isattacking === entity.player.atkstates[1]) {
       entity.player.vy = 0;
       input.vx = input.storedvx;
       input.vy = input.storedvy;
       entity.player.x += input.vx * entity.player.facedir;
       entity.player.y += input.vy;
     }
-    else if(!entity.player.isattacking) {
-      input.vx *= input.air_resist;
-      input.vy *= input.air_resist;
+    else if(entity.player.isattacking === entity.player.atkstates[2]) {
       entity.player.x += input.vx * entity.player.facedir;
       entity.player.y += input.vy;
+      input.vx *= input.air_resist;
+      input.vy *= input.air_resist;
+      
       console.log(entity.player.vy);
     }
   }
@@ -391,7 +401,7 @@ function determineTimeSinceLastInput() {
 
 
 function keyPressed() {
-  if (!entity.player.isattacking) { 
+  if (!entity.player.isattacking || entity.player.isattacking === entity.player.atkstates[2]) { 
     if (allowedAttackInputs.includes(key)) {
       testingAThing = key;
       isCurAtkInputting = true;
