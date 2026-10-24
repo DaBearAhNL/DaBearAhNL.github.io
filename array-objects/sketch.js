@@ -14,7 +14,7 @@ const TERMINATE_INPUT_STORAGE = 500;
 const SIZE = 75;
 const GRAVITY = 2.25;
 const KB_RESIST = null;
-const INSURANCE = 2000;
+const INSURANCE = 1500;
 
 
 let attackInputStorage = [];
@@ -88,13 +88,13 @@ let hitboxes = {
     height : SIZE*1.25,
     width : SIZE*1.25,
     windup : 0,
-    lifetime : 350,
-    endlag : 150,
-    storedvx : 20,
-    storedvy : -15,
-    vx : 20,
-    vy : -15,
-    air_resist : 0.9
+    lifetime : 150,
+    endlag : 0,
+    storedvx : 25,
+    storedvy : -50,
+    vx : 25,
+    vy : -50,
+    air_resist : 0.95
 
 
   } ,
@@ -104,12 +104,12 @@ let hitboxes = {
     height : SIZE*1.25,
     width : SIZE*1.25,
     windup : 0,
-    lifetime : 350,
-    endlag : 150,
-    storedvx : 15,
-    storedvy : 20,
-    vx : 15,
-    vy : 20,
+    lifetime : 150,
+    endlag : 0,
+    storedvx : 25,
+    storedvy : 50,
+    vx : 25,
+    vy : 50,
     air_resist : 0.95
 
   }
@@ -151,7 +151,7 @@ async function setup() {
       ismovingtech : false,
       movementstates : ['easein', 'easeout'],
       isattacking : false,
-      atkstates : ['windup', 'activeframes', 'endlag'],
+      atkstates : ['startup', 'activeframes', 'endlag'],
       vertstates : ['onGround', 'midFall', 'midJump'],
       curvertstate : false,
       facedir : 1,
@@ -334,12 +334,14 @@ function determinePlrActionStates(input) {
     }
     else if (millis() <= hitboxBirthTime + input.windup + input.lifetime + input.endlag) {
       entity.player.isattacking = entity.player.atkstates[2];
-      
       console.log('c');
     }
     else {
       entity.player.isattacking = false;
-      inputtedHitbox = null;
+      if (millis() >= hitboxBirthTime + input.windup + input.lifetime + input.endlag + INSURANCE) {
+        inputtedHitbox = false;
+      }
+    
     }
   }
 }
@@ -361,20 +363,26 @@ function displayHitbox(input) {
 function plrMovementOnAtk(input) {
 
   if (input) {
-    if (entity.player.isattacking === entity.player.atkstates[1]) {
+    if (entity.player.isattacking) {
       entity.player.vy = 0;
       input.vx = input.storedvx;
       input.vy = input.storedvy;
       entity.player.x += input.vx * entity.player.facedir;
       entity.player.y += input.vy;
     }
-    else if(entity.player.isattacking === entity.player.atkstates[2]) {
-      entity.player.x += input.vx * entity.player.facedir;
+    else if(!entity.player.isattacking) {
       entity.player.y += input.vy;
-      input.vx *= input.air_resist;
+      entity.player.x += input.vx * entity.player.facedir;
       input.vy *= input.air_resist;
+      input.vx *= input.air_resist;
+
+      if (input.vy > 0 || entity.player.y <= 0 + SIZE/2) {
+        input.vy = 0.5;
+      }
+
       
-      console.log(entity.player.vy);
+  
+      console.log(input.vx);
     }
   }
 }
