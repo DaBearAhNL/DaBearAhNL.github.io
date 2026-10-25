@@ -42,13 +42,11 @@ let hitboxes = {
     offsety : 0,
     height : SIZE,
     width : SIZE*2,
-    windup : 35,
-    lifetime : 100,
-    endlag : 50,
-    storedvx : 6,
-    storedvy : -1,
-    vx : 6,
-    vy : -1,
+    atkspan : [35, 100, 50],
+    statesvx : [1,1,1],
+    statesvy : [0, 0, 0],
+    vx : null,
+    vy : null,
     air_resist : 0
 
   } ,
@@ -57,14 +55,12 @@ let hitboxes = {
     offsety : -SIZE/2,
     height : SIZE*2.25,
     width : SIZE,
-    windup : 200,
-    lifetime : 300,
-    endlag : 200,
-    storedvx : 35,
-    storedvy : -70,
-    vx : 6,
-    vy : -1,
-    air_resist : 0
+    atkspan : [250,150,100],
+    statesvx : [7.5,2.5,2.5],
+    statesvy : [0, 0, 0],
+    vx : null,
+    vy : null,
+    air_resist : 0.95
 
   } , 
   downslam : {
@@ -72,14 +68,12 @@ let hitboxes = {
     offsety : SIZE/2,
     height : SIZE*2.25,
     width : SIZE,
-    windup : 200,
-    lifetime : 300,
-    endlag : 200,
-    storedvx : 35,
-    storedvy : -70,
-    vx : 6,
-    vy : -1,
-    air_resist : 0
+    atkspan : [250,300,200],
+    statesvx : [7.5,2.5,2.5],
+    statesvy : [0, 0, 0],
+    vx : null,
+    vy : null,
+    air_resist : 0.95
 
   } ,
   uptilt : {
@@ -87,14 +81,12 @@ let hitboxes = {
     offsety : -SIZE/1.5,
     height : SIZE*1.25,
     width : SIZE*1.25,
-    windup : 0,
-    lifetime : 150,
-    endlag : 0,
-    storedvx : 25,
-    storedvy : -50,
-    vx : 25,
-    vy : -50,
-    air_resist : 0.95
+    atkspan : [250,300,200],
+    statesvx : [20, 20, 20],
+    statesvy : [-40, -40, -40],
+    vx : null,
+    vy : null,
+    air_resist : 0.85
 
 
   } ,
@@ -103,14 +95,12 @@ let hitboxes = {
     offsety : SIZE/1.5,
     height : SIZE*1.25,
     width : SIZE*1.25,
-    windup : 0,
-    lifetime : 150,
-    endlag : 0,
-    storedvx : 25,
-    storedvy : 50,
-    vx : 25,
-    vy : 50,
-    air_resist : 0.95
+    atkspan : [0, 150, 0],
+    statesvx : [20, 20, 20],
+    statesvy : [40, 40, 40],
+    vx : null,
+    vy : null,
+    air_resist : 0.85
 
   }
 } ; 
@@ -152,8 +142,8 @@ async function setup() {
       movementstates : ['easein', 'easeout'],
       isattacking : false,
       atkstates : ['startup', 'activeframes', 'endlag'],
-      vertstates : ['onGround', 'midFall', 'midJump'],
       curvertstate : false,
+      vertstates : ['onGround', 'midFall', 'midJump'],
       facedir : 1,
       walkspeed : 7.5,
       vx : 0,
@@ -251,6 +241,7 @@ function entitySettings() {
   
 function playerSettings() {
   // base horizontal movement settings
+
   if (keyIsDown('a')) {
     entity.player.x -= entity.player.walkspeed;
     entity.player.facedir = -1;
@@ -285,37 +276,38 @@ function processInputs() {
     let getAtkFirstThreeInputs = attackInputStorage.splice(0,3);
     let firstAtkItemCollective = getAtkFirstThreeInputs.join('');
     attackSequenceStorage.push(firstAtkItemCollective);
-  }
-  let currentAtkSequence = attackSequenceStorage.splice(0,1);
-  let atkActions = {
-    'lkm' : hitboxes.basic,
-    'kmk' : hitboxes.downslam,
-    'lkl' : hitboxes.uppercut,
-    'kll' : hitboxes.uptilt,
-    'kmm' : hitboxes.dropkick,
-  } ; 
-  if (currentAtkSequence && atkActions[currentAtkSequence]) {
-    inputtedHitbox = atkActions[currentAtkSequence];
-    hitboxBirthTime = millis();
-    entity.player.isattacking = true;
-  }
 
-  if (movementInputStorage.length >= 3) {
-    let getMoveFirstThreeInputs = movementInputStorage.splice(0,3);
-    let firstMoveItemCollective = getMoveFirstThreeInputs.join('');
-    movementSequenceStorage.push(firstMoveItemCollective);
-  }
-  let currentMoveSequence = movementSequenceStorage.splice(0,1)[0];
-  let moveActions = {
-    'asd' : 'somethingelse',
-    'awd' : 'right-greater-dash',
-    'dsa' : 'left-lesser-dash',
-    'dwa' : 'left-greater-dash',
-  } ; 
-  if (currentMoveSequence && moveActions[currentMoveSequence]) {
-    inputtedMovementTech = moveActions[currentMoveSequence];
-    mtechBirthTime = millis();
-    entity.player.ismovingtech = true;
+    let currentAtkSequence = attackSequenceStorage.splice(0,1);
+    let atkActions = {
+      'lkm' : hitboxes.basic,
+      'kmk' : hitboxes.downslam,
+      'lkl' : hitboxes.uppercut,
+      'kll' : hitboxes.uptilt,
+      'kmm' : hitboxes.dropkick,
+    } ; 
+    if (currentAtkSequence && atkActions[currentAtkSequence]) {
+      inputtedHitbox = atkActions[currentAtkSequence];
+      hitboxBirthTime = millis();
+      entity.player.isattacking = true;
+    }
+
+    if (movementInputStorage.length >= 3) {
+      let getMoveFirstThreeInputs = movementInputStorage.splice(0,3);
+      let firstMoveItemCollective = getMoveFirstThreeInputs.join('');
+      movementSequenceStorage.push(firstMoveItemCollective);
+    }
+    let currentMoveSequence = movementSequenceStorage.splice(0,1)[0];
+    let moveActions = {
+      'asd' : 'somethingelse',
+      'awd' : 'right-greater-dash',
+      'dsa' : 'left-lesser-dash',
+      'dwa' : 'left-greater-dash',
+    } ; 
+    if (currentMoveSequence && moveActions[currentMoveSequence]) {
+      inputtedMovementTech = moveActions[currentMoveSequence];
+      mtechBirthTime = millis();
+      entity.player.ismovingtech = true;
+    }
   }
 }
 
@@ -324,21 +316,26 @@ function processInputs() {
 
 function determinePlrActionStates(input) {
   if (input) {
-    if (millis() <= hitboxBirthTime + input.windup) {
+
+    let windup = input.atkspan[0];
+    let activeframes = input.atkspan[0] + input.atkspan[1];
+    let endlag = input.atkspan[0] + input.atkspan[1] + input.atkspan[2];
+
+    if (millis() <= hitboxBirthTime + windup) {
       entity.player.isattacking = entity.player.atkstates[0];
       console.log('a');
     }
-    else if (millis() <= hitboxBirthTime + input.windup + input.lifetime) {
+    else if (millis() <= hitboxBirthTime + activeframes) {
       entity.player.isattacking = entity.player.atkstates[1];
       console.log('b');
     }
-    else if (millis() <= hitboxBirthTime + input.windup + input.lifetime + input.endlag) {
+    else if (millis() <= hitboxBirthTime + endlag) {
       entity.player.isattacking = entity.player.atkstates[2];
       console.log('c');
     }
     else {
       entity.player.isattacking = false;
-      if (millis() >= hitboxBirthTime + input.windup + input.lifetime + input.endlag + INSURANCE) {
+      if (millis() >= hitboxBirthTime + endlag + INSURANCE) {
         inputtedHitbox = false;
       }
     
@@ -361,12 +358,13 @@ function displayHitbox(input) {
 }
 
 function plrMovementOnAtk(input) {
-
+  let identifier = entity.player.atkstates.indexOf(entity.player.isattacking);
+  console.log(identifier);
   if (input) {
     if (entity.player.isattacking) {
       entity.player.vy = 0;
-      input.vx = input.storedvx;
-      input.vy = input.storedvy;
+      input.vx = input.statesvx[identifier];
+      input.vy = input.statesvy[identifier];
       entity.player.x += input.vx * entity.player.facedir;
       entity.player.y += input.vy;
     }
@@ -377,12 +375,12 @@ function plrMovementOnAtk(input) {
       input.vx *= input.air_resist;
 
       if (input.vy > 0 || entity.player.y <= 0 + SIZE/2) {
-        input.vy = 0.5;
+        input.vy = 0;
       }
 
       
   
-      console.log(input.vx);
+      // console.log(input.vx);
     }
   }
 }
