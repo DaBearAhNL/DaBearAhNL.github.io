@@ -16,7 +16,6 @@ const GRAVITY = 2.25;
 const KB_RESIST = null;
 const INSURANCE = 1500;
 
-
 let attackInputStorage = [];
 let allowedAttackInputs = ['k', 'l','m'];
 let testingAThing = ' ';
@@ -30,8 +29,6 @@ let testingMThing = ' ';
 let movementSequenceStorage = [];
 let isCurMoveInputting = false;
 let lastMoveInpTime;
-
-
 
 let inputtedHitbox;
 let hitboxBirthTime = 0;
@@ -47,7 +44,7 @@ let hitboxes = {
     statesvy : [0, 0, 0],
     vx : null,
     vy : null,
-    air_resist : 0
+    air_resist : .5
 
   } ,
   uppercut : {
@@ -81,7 +78,7 @@ let hitboxes = {
     offsety : -SIZE/1.5,
     height : SIZE*1.25,
     width : SIZE*1.25,
-    atkspan : [250,300,200],
+    atkspan : [0, 150, 0],
     statesvx : [20, 20, 20],
     statesvy : [-40, -40, -40],
     vx : null,
@@ -133,7 +130,6 @@ let entity;
 async function setup() {
   rectMode(CENTER);
   createCanvas(windowWidth, windowHeight);
-
   entity  = {
     player : {
       x : width - width/3*2,
@@ -148,8 +144,8 @@ async function setup() {
       walkspeed : 7.5,
       vx : 0,
       vy : 0,
-
     } ,
+
     dummy : {
       x : 0 + width/3*2,
       y : height - SIZE/2,
@@ -160,43 +156,25 @@ async function setup() {
       vy : 0,
     } 
   } ;
-
   rectMode(CENTER);
   imageMode(CENTER);
-
 }
 
 
 function draw() {
   background(220);
-
- 
   spawnEntities();
-
   determineTimeSinceLastInput();
   processInputs();
-  
-  determinePlrActionStates(inputtedHitbox);
+  determinePlrActionStates(inputtedHitbox); // gona have to group this cuz idk how to make movement abilities and atk actions into one function. meh
   displayHitbox(inputtedHitbox);
   plrMovementOnAtk(inputtedHitbox);
-  
-  
-
-
-  
+  hitboxCollide(inputtedHitbox);
   if (!entity.player.isattacking) {
     playerSettings();
     gravitySim();
   }
-  
-  
-  
-  
-
   entitySettings();
-  
-  
- 
 }
 
 
@@ -374,15 +352,27 @@ function plrMovementOnAtk(input) {
       input.vy *= input.air_resist;
       input.vx *= input.air_resist;
 
-      if (input.vy > 0 || entity.player.y <= 0 + SIZE/2) {
+      if (input.vy > 0 && entity.player.y >= height - SIZE/2 || entity.player.y <= 0 + SIZE/2) {
         input.vy = 0;
       }
 
-      
-  
-      // console.log(input.vx);
+      console.log(input.vy)
     }
   }
+}
+
+function hitboxCollide(input) {
+  if (input) {
+    let hitValid = collideRectRect(
+      input.offsetx * entity.player.facedir + entity.player.x, input.offsety + entity.player.y, input.width, input.height,
+      entity.dummy.x, entity.dummy.y, SIZE, SIZE
+    );
+
+    if (hitValid) {
+      console.log('GHARHAHRHARHA ITS WORKING');
+    }
+  }
+  
 }
 
 
