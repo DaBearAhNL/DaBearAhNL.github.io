@@ -15,6 +15,7 @@ const SIZE = 75;
 const GRAVITY = .75;
 const KB_RESIST = 0.9;
 const INSURANCE = 1500;
+const REDUCE_SCREEN_SHAKE = 0.85;
 
 let attackInputStorage = [];
 let allowedAttackInputs = ['k', 'l','m'];
@@ -38,6 +39,12 @@ let hitboxKbStorageY;
 let hitboxDirStorage;
 let hitboxDissonancePrevention = false;
 
+let screenShakeIntensity;
+let screenShakeAmount;
+let shakeX;
+let shakeY;
+let hitstopAmount;
+
 let hitboxes = {
   basic : {
     sizes : [SIZE+SIZE/1.95, 0, SIZE*2, SIZE],
@@ -49,7 +56,11 @@ let hitboxes = {
     plrdrag : 0.5,
 
     kbx : 10,
-    kby : -5
+    kby : -5,
+
+    amountss : 20,
+    intensityss : 2.5,
+    hsamount : 5,
   } ,
   uppercut : {
     sizes : [SIZE-SIZE/3, -SIZE/2, SIZE, SIZE*2.25],
@@ -61,7 +72,11 @@ let hitboxes = {
     plrdrag : 0.95,
 
     kbx : 10,
-    kby : -95
+    kby : -95,
+
+    amountss : 15,
+    intensityss : 5,
+    hsamount : 35,
   } , 
   downslam : {
     sizes : [SIZE-SIZE/3, SIZE/2, SIZE, SIZE*2.25],
@@ -73,7 +88,11 @@ let hitboxes = {
     plrdrag : 0.95,
 
     kbx : 10,
-    kby : 95
+    kby : 95,
+
+    amountss : 15,
+    intensityss : 5,
+    hsamount : 35,
   } ,
   uptilt : {
     sizes : [SIZE/1.5, -SIZE/1.5, SIZE*1.25, SIZE*1.25],
@@ -85,7 +104,11 @@ let hitboxes = {
     plrdrag : 0.85,
 
     kbx : 30,
-    kby : -50
+    kby : -50,
+
+    amountss : 15,
+    intensityss : 5,
+    hsamount : 20,
   } ,
   dropkick : {
     sizes : [SIZE/1.5, SIZE/1.5, SIZE*1.25, SIZE*1.25],
@@ -97,7 +120,11 @@ let hitboxes = {
     plrdrag : 0.85,
 
     kbx : 30,
-    kby : -45
+    kby : -45,
+
+    amountss : 15,
+    intensityss : 5,
+    hsamount : 20,
   }
 } ; 
 
@@ -164,28 +191,32 @@ async function setup() {
 
 function draw() {
   background(220);
+
+  screenShake();
+  
+
   spawnEntities();
+  
+
+  if (hitstopAmount) {
+    hitstopAmount--
+  }
+  else {
   determineTimeSinceLastInput();
   processInputs();
-  determinePlrActionStates(inputtedHitbox); // gona have to group this cuz idk how to make movement abilities and atk actions into one function. meh
-  displayHitbox(inputtedHitbox);
-  plrMovementOnAtk(inputtedHitbox);
-  hitboxCollide(inputtedHitbox);
+  attackFunctionGrouper(inputtedHitbox);
   dummyOnKb();
   if (!entity.player.isattacking) {
     playerSettings();
     PlrGravitySim();
   }
   DummyGravitySim();
-  
+  }
+
   
   entitySettings();
-
-
+  displayHitbox(inputtedHitbox);
 }
-
-
-
 
 
 
@@ -302,8 +333,13 @@ function processInputs() {
 
 
 // I SO NEED TO FIX THIS AREA WHEN I GET TO SPRITES AND STUFF OH GOD
+function attackFunctionGrouper(input) {
+  determinePlrAttackStates(input);
+  plrMovementOnAtk(input);
+  hitboxCollide(input);
+}
 
-function determinePlrActionStates(input) {
+function determinePlrAttackStates(input) {
   if (input) {
 
     let windup = input.atkspan[0];
@@ -377,7 +413,7 @@ function hitboxCollide(input) {
   if (input && entity.player.isattacking === entity.player.atkstates[1]) {
     let hitValid = collideRectRect(
       input.sizes[0] * entity.player.facedir + entity.player.x - input.sizes[2]/2, input.sizes[1] + entity.player.y - input.sizes[3]/2, input.sizes[2], input.sizes[3],
-      entity.dummy.x - SIZE/2, entity.dummy.y - SIZE/2, SIZE, SIZE
+      entity.dummy.x - SIZE/2, entity.dummy.y  - SIZE/2, SIZE, SIZE
     );
 
     if (hitValid && !hitboxDissonancePrevention) {
@@ -387,6 +423,10 @@ function hitboxCollide(input) {
       hitboxDirStorage = entity.player.facedir;
       hitboxDissonancePrevention = true;
       entity.dummy.vy = 0;
+
+      screenShakeAmount = input.amountss;
+      screenShakeIntensity = input.intensityss;
+      hitstopAmount = input.hsamount;
     }
   }
 }
@@ -418,12 +458,24 @@ function dummyOnKb() {
       entity.dummy.isonkb = false;
       entity.dummy.kbcurvalue = null;
     }
-
-    
-
   }
 }
 
+function screenShake() {
+  if (screenShakeAmount > 0.5) {
+    shakeX = random(-screenShakeIntensity, screenShakeIntensity)
+    shakeY = random(-screenShakeIntensity, screenShakeIntensity)
+
+    translate(shakeX, shakeY)
+
+    screenShakeAmount *= REDUCE_SCREEN_SHAKE;
+    screenShakeIntensity *= REDUCE_SCREEN_SHAKE;
+  }
+  else {
+    screenShakeAmount = 0;
+    screenShakeIntensity = 0;
+  }
+}
 
 
 
