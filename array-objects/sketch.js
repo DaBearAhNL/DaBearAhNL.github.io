@@ -12,7 +12,7 @@
 const NO_INPUTS_DETECTED = 100;
 const TERMINATE_INPUT_STORAGE = 500;
 const SIZE = 75;
-const GRAVITY = .75;
+const GRAVITY = 0.75;
 const KB_RESIST = 0.9;
 const INSURANCE = 1500;
 const REDUCE_SCREEN_SHAKE = 0.85;
@@ -215,19 +215,19 @@ function draw() {
   
 
   if (hitstopAmount) {
-    hitstopAmount--
+    hitstopAmount--;
   }
   else {
-  determineTimeSinceLastInput();
-  processInputs();
-  attackFunctionGrouper(inputtedHitbox);
-  movementTechFunctionGrouper(inputtedMovementTech);
-  dummyOnKb();
-  if (!entity.player.isattacking) {
-    playerSettings();
-    PlrGravitySim();
-  }
-  DummyGravitySim();
+    determineTimeSinceLastInput();
+    processInputs();
+    attackFunctionGrouper(inputtedHitbox);
+    movementTechFunctionGrouper(inputtedMovementTech);
+    dummyOnKb();
+    if (!entity.player.isattacking) {
+      playerSettings();
+      PlrGravitySim();
+    }
+    DummyGravitySim();
   }
 
   
@@ -289,7 +289,7 @@ function playerSettings() {
     entity.player.vy -= 5;
   }
   if (entity.player.curvertstate === entity.player.vertstates[2] && keyIsDown(' ')) {
-    entity.player.vy -= .01;
+    entity.player.vy -= 0.01;
   }
 }
 
@@ -473,12 +473,12 @@ function hitboxCollide(input) {
 function dummyOnKb() {
   if (entity.dummy.isonkb) {
 
-    if (entity.dummy.kbcurvalue = entity.dummy.kbstates[1]) {
+    if (entity.dummy.kbcurvalue === entity.dummy.kbstates[1]) {
       if (entity.dummy.y >= height - SIZE/2 || entity.dummy.y <= 0 + SIZE/2) {
-        hitboxKbStorageY *= -1
+        hitboxKbStorageY *= -1;
       }
       if (entity.dummy.x >= width - SIZE/2 || entity.dummy.x <= 0 + SIZE/2) {
-        hitboxKbStorageX *= -1
+        hitboxKbStorageX *= -1;
       }
     }
 
@@ -507,10 +507,10 @@ function dummyOnKb() {
 
 function screenShake() {
   if (screenShakeAmount > 0.5) {
-    shakeX = random(-screenShakeIntensity, screenShakeIntensity)
-    shakeY = random(-screenShakeIntensity, screenShakeIntensity)
+    shakeX = random(-screenShakeIntensity, screenShakeIntensity);
+    shakeY = random(-screenShakeIntensity, screenShakeIntensity);
 
-    translate(shakeX, shakeY)
+    translate(shakeX, shakeY);
 
     screenShakeAmount *= REDUCE_SCREEN_SHAKE;
     screenShakeIntensity *= REDUCE_SCREEN_SHAKE;
@@ -591,9 +591,9 @@ function processInputs() {
   }
 
   if (movementInputStorage.length >= 3) {
-      let getMoveFirstThreeInputs = movementInputStorage.splice(0,3);
-      let firstMoveItemCollective = getMoveFirstThreeInputs.join('');
-      movementSequenceStorage.push(firstMoveItemCollective);
+    let getMoveFirstThreeInputs = movementInputStorage.splice(0,3);
+    let firstMoveItemCollective = getMoveFirstThreeInputs.join('');
+    movementSequenceStorage.push(firstMoveItemCollective);
     
     let currentMoveSequence = movementSequenceStorage.splice(0,1)[0];
     let moveActions = {
