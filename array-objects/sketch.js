@@ -12,8 +12,8 @@
 const NO_INPUTS_DETECTED = 100;
 const TERMINATE_INPUT_STORAGE = 500;
 const SIZE = 75;
-const GRAVITY = 2.25;
-const KB_RESIST = null;
+const GRAVITY = .75;
+const KB_RESIST = 0.9;
 const INSURANCE = 1500;
 
 let attackInputStorage = [];
@@ -33,72 +33,71 @@ let lastMoveInpTime;
 let inputtedHitbox;
 let hitboxBirthTime = 0;
 
+let hitboxKbStorageX;
+let hitboxKbStorageY;
+let hitboxDirStorage;
+let hitboxDissonancePrevention = false;
+
 let hitboxes = {
   basic : {
-    offsetx : SIZE+SIZE/1.95,
-    offsety : 0,
-    height : SIZE,
-    width : SIZE*2,
+    sizes : [SIZE+SIZE/1.95, 0, SIZE*2, SIZE],
     atkspan : [35, 100, 50],
     statesvx : [1,1,1],
     statesvy : [0, 0, 0],
-    vx : null,
-    vy : null,
-    air_resist : .5
+    plrvx : null,
+    plrvy : null,
+    plrdrag : 0.5,
 
+    kbx : 10,
+    kby : -5
   } ,
   uppercut : {
-    offsetx : SIZE-SIZE/3,
-    offsety : -SIZE/2,
-    height : SIZE*2.25,
-    width : SIZE,
+    sizes : [SIZE-SIZE/3, -SIZE/2, SIZE, SIZE*2.25],
     atkspan : [250,150,100],
     statesvx : [7.5,2.5,2.5],
     statesvy : [0, 0, 0],
-    vx : null,
-    vy : null,
-    air_resist : 0.95
+    plrvx : null,
+    plrvy : null,
+    plrdrag : 0.95,
 
+    kbx : 10,
+    kby : -95
   } , 
   downslam : {
-    offsetx : SIZE-SIZE/3,
-    offsety : SIZE/2,
-    height : SIZE*2.25,
-    width : SIZE,
+    sizes : [SIZE-SIZE/3, SIZE/2, SIZE, SIZE*2.25],
     atkspan : [250,300,200],
     statesvx : [7.5,2.5,2.5],
     statesvy : [0, 0, 0],
-    vx : null,
-    vy : null,
-    air_resist : 0.95
+    plrvx : null,
+    plrvy : null,
+    plrdrag : 0.95,
 
+    kbx : 10,
+    kby : 95
   } ,
   uptilt : {
-    offsetx : SIZE/1.5,
-    offsety : -SIZE/1.5,
-    height : SIZE*1.25,
-    width : SIZE*1.25,
+    sizes : [SIZE/1.5, -SIZE/1.5, SIZE*1.25, SIZE*1.25],
     atkspan : [0, 150, 0],
     statesvx : [20, 20, 20],
     statesvy : [-40, -40, -40],
-    vx : null,
-    vy : null,
-    air_resist : 0.85
+    plrvx : null,
+    plrvy : null,
+    plrdrag : 0.85,
 
-
+    kbx : 30,
+    kby : -50
   } ,
   dropkick : {
-    offsetx : SIZE/1.5,
-    offsety : SIZE/1.5,
-    height : SIZE*1.25,
-    width : SIZE*1.25,
+    sizes : [SIZE/1.5, SIZE/1.5, SIZE*1.25, SIZE*1.25],
     atkspan : [0, 150, 0],
     statesvx : [20, 20, 20],
     statesvy : [40, 40, 40],
-    vx : null,
-    vy : null,
-    air_resist : 0.85
+    plrvx : null,
+    plrvy : null,
+    plrdrag : 0.85,
 
+    kbx : 30,
+    kby : -45
   }
 } ; 
 
@@ -150,8 +149,10 @@ async function setup() {
       x : 0 + width/3*2,
       y : height - SIZE/2,
       isonkb : false,
+      kbcurvalue : null,
+      kbstates : ['light', 'heavy'],
+      curvertstate : false,
       vertstates : ['onGround', 'midFall', 'midJump'],
-      curvertstate : null,
       vx : 0,
       vy : 0,
     } 
@@ -170,11 +171,17 @@ function draw() {
   displayHitbox(inputtedHitbox);
   plrMovementOnAtk(inputtedHitbox);
   hitboxCollide(inputtedHitbox);
+  dummyOnKb();
   if (!entity.player.isattacking) {
     playerSettings();
-    gravitySim();
+    PlrGravitySim();
   }
+  DummyGravitySim();
+  
+  
   entitySettings();
+
+
 }
 
 
@@ -231,20 +238,24 @@ function playerSettings() {
 
   // base vertical movement settings
   if (entity.player.curvertstate === entity.player.vertstates[0] && keyIsDown(' ')) {
-    entity.player.vy -= 15;
+    entity.player.vy -= 5;
   }
   if (entity.player.curvertstate === entity.player.vertstates[2] && keyIsDown(' ')) {
-    entity.player.vy -= 1;
+    entity.player.vy -= .01;
   }
 }
 
-function gravitySim() {
+function PlrGravitySim() {
   entity.player.vy += GRAVITY;
   entity.player.y += entity.player.vy;
+}
 
+function DummyGravitySim() {
   entity.dummy.vy += GRAVITY;
   entity.dummy.y += entity.dummy.vy;
+
 }
+  
 
 
 
@@ -301,18 +312,16 @@ function determinePlrActionStates(input) {
 
     if (millis() <= hitboxBirthTime + windup) {
       entity.player.isattacking = entity.player.atkstates[0];
-      console.log('a');
     }
     else if (millis() <= hitboxBirthTime + activeframes) {
       entity.player.isattacking = entity.player.atkstates[1];
-      console.log('b');
     }
     else if (millis() <= hitboxBirthTime + endlag) {
       entity.player.isattacking = entity.player.atkstates[2];
-      console.log('c');
     }
     else {
       entity.player.isattacking = false;
+      hitboxDissonancePrevention = false;
       if (millis() >= hitboxBirthTime + endlag + INSURANCE) {
         inputtedHitbox = false;
       }
@@ -325,11 +334,15 @@ function displayHitbox(input) {
   if (input) {
     if (entity.player.isattacking === entity.player.atkstates[0]) {
       fill('blue');
-      rect(input.offsetx * entity.player.facedir + entity.player.x, input.offsety + entity.player.y, input.width, input.height);
+      rect(input.sizes[0] * entity.player.facedir + entity.player.x, input.sizes[1] + entity.player.y, input.sizes[2], input.sizes[3]);
     }
     else if (entity.player.isattacking === entity.player.atkstates[1]) {
       fill('red');
-      rect(input.offsetx * entity.player.facedir + entity.player.x, input.offsety + entity.player.y, input.width, input.height);
+      rect(input.sizes[0] * entity.player.facedir + entity.player.x, input.sizes[1] + entity.player.y, input.sizes[2], input.sizes[3]);
+    }
+    else if (entity.player.isattacking === entity.player.atkstates[2]) {
+      fill('green');
+      rect(input.sizes[0] * entity.player.facedir + entity.player.x, input.sizes[1] + entity.player.y, input.sizes[2], input.sizes[3]);
     }
     
   }
@@ -337,42 +350,78 @@ function displayHitbox(input) {
 
 function plrMovementOnAtk(input) {
   let identifier = entity.player.atkstates.indexOf(entity.player.isattacking);
-  console.log(identifier);
   if (input) {
     if (entity.player.isattacking) {
       entity.player.vy = 0;
-      input.vx = input.statesvx[identifier];
-      input.vy = input.statesvy[identifier];
-      entity.player.x += input.vx * entity.player.facedir;
-      entity.player.y += input.vy;
+      input.plrvx = input.statesvx[identifier];
+      input.plrvy = input.statesvy[identifier];
+      entity.player.x += input.plrvx * entity.player.facedir;
+      entity.player.y += input.plrvy;
     }
     else if(!entity.player.isattacking) {
-      entity.player.y += input.vy;
-      entity.player.x += input.vx * entity.player.facedir;
-      input.vy *= input.air_resist;
-      input.vx *= input.air_resist;
+      entity.player.y += input.plrvy;
+      entity.player.x += input.plrvx * entity.player.facedir;
+      input.plrvy *= input.plrdrag;
+      input.plrvx *= input.plrdrag;
 
-      if (input.vy > 0 && entity.player.y >= height - SIZE/2 || entity.player.y <= 0 + SIZE/2) {
-        input.vy = 0;
+      if (input.plrvy > 0 && entity.player.y >= height - SIZE/2 || entity.player.y <= 0 + SIZE/2) {
+        input.plrvy = 0;
       }
 
-      console.log(input.vy)
+    
     }
   }
 }
 
 function hitboxCollide(input) {
-  if (input) {
+  if (input && entity.player.isattacking === entity.player.atkstates[1]) {
     let hitValid = collideRectRect(
-      input.offsetx * entity.player.facedir + entity.player.x, input.offsety + entity.player.y, input.width, input.height,
-      entity.dummy.x, entity.dummy.y, SIZE, SIZE
+      input.sizes[0] * entity.player.facedir + entity.player.x - input.sizes[2]/2, input.sizes[1] + entity.player.y - input.sizes[3]/2, input.sizes[2], input.sizes[3],
+      entity.dummy.x - SIZE/2, entity.dummy.y - SIZE/2, SIZE, SIZE
     );
 
-    if (hitValid) {
-      console.log('GHARHAHRHARHA ITS WORKING');
+    if (hitValid && !hitboxDissonancePrevention) {
+      entity.dummy.isonkb = true;
+      hitboxKbStorageX = input.kbx;
+      hitboxKbStorageY = input.kby;
+      hitboxDirStorage = entity.player.facedir;
+      hitboxDissonancePrevention = true;
+      entity.dummy.vy = 0;
     }
   }
+}
+
+function dummyOnKb() {
+  if (entity.dummy.isonkb) {
+
+    if (entity.dummy.kbcurvalue = entity.dummy.kbstates[1]) {
+      if (entity.dummy.y >= height - SIZE/2 || entity.dummy.y <= 0 + SIZE/2) {
+        hitboxKbStorageY *= -1
+      }
+      if (entity.dummy.x >= width - SIZE/2 || entity.dummy.x <= 0 + SIZE/2) {
+        hitboxKbStorageX *= -1
+      }
+    }
+
+    entity.dummy.x += hitboxKbStorageX * hitboxDirStorage;
+    entity.dummy.y += hitboxKbStorageY;
+    hitboxKbStorageX *= KB_RESIST;
+    hitboxKbStorageY *= KB_RESIST;
   
+    if (Math.abs(hitboxKbStorageX) >= 20 || Math.abs(hitboxKbStorageY) >= 20) {
+      entity.dummy.kbcurvalue = entity.dummy.kbstates[1];
+    }
+    else if (Math.abs(hitboxKbStorageX) >= 3  || Math.abs(hitboxKbStorageY) >= 3) {
+      entity.dummy.kbcurvalue = entity.dummy.kbstates[0];
+    }
+    else if (Math.abs(hitboxKbStorageX) < 3  || Math.abs(hitboxKbStorageY) < 3) {
+      entity.dummy.isonkb = false;
+      entity.dummy.kbcurvalue = null;
+    }
+
+    
+
+  }
 }
 
 
@@ -414,6 +463,5 @@ function keyPressed() {
       movementInputStorage.push(testingMThing);
     }
   }
- 
 }
 
