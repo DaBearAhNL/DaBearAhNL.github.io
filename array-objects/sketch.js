@@ -48,7 +48,7 @@ let hitstopAmount;
 let hitboxes = {
   basic : {
     sizes : [SIZE+SIZE/1.95, 0, SIZE*2, SIZE],
-    atkspan : [35, 100, 50],
+    span : [35, 100, 50],
     statesvx : [1,1,1],
     statesvy : [0, 0, 0],
     plrvx : null,
@@ -64,7 +64,7 @@ let hitboxes = {
   } ,
   uppercut : {
     sizes : [SIZE-SIZE/3, -SIZE/2, SIZE, SIZE*2.25],
-    atkspan : [250,150,100],
+    span : [250,150,100],
     statesvx : [7.5,2.5,2.5],
     statesvy : [0, 0, 0],
     plrvx : null,
@@ -80,7 +80,7 @@ let hitboxes = {
   } , 
   downslam : {
     sizes : [SIZE-SIZE/3, SIZE/2, SIZE, SIZE*2.25],
-    atkspan : [250,300,200],
+    span : [250,300,200],
     statesvx : [7.5,2.5,2.5],
     statesvy : [0, 0, 0],
     plrvx : null,
@@ -96,7 +96,7 @@ let hitboxes = {
   } ,
   uptilt : {
     sizes : [SIZE/1.5, -SIZE/1.5, SIZE*1.25, SIZE*1.25],
-    atkspan : [0, 150, 0],
+    span : [0, 150, 0],
     statesvx : [20, 20, 20],
     statesvy : [-40, -40, -40],
     plrvx : null,
@@ -112,7 +112,7 @@ let hitboxes = {
   } ,
   dropkick : {
     sizes : [SIZE/1.5, SIZE/1.5, SIZE*1.25, SIZE*1.25],
-    atkspan : [0, 150, 0],
+    span : [0, 150, 0],
     statesvx : [20, 20, 20],
     statesvy : [40, 40, 40],
     plrvx : null,
@@ -133,20 +133,36 @@ let mtechBirthTime = 0;
 
 let movementtech = {
   greatdashr : {
-    vx : 0,
-    vy : 0
+    span : [100, 100],
+    statesvx : [50, 20],
+    statesvy : [0, 0],
+    plrvx : null,
+    plrvy : null,
+    plrdrag : 0.85
   },
   greatdashl : {
-    vx : 0,
-    vy : 0
+    span : [100, 100],
+    statesvx : [-50, -20],
+    statesvy : [0, 0],
+    plrvx : null,
+    plrvy : null,
+    plrdrag : 0.85
   },
   lesserdashr : {
-    vx : 0,
-    vy : 0
+    span : [50, 100],
+    statesvx : [20, 10],
+    statesvy : [0, 0],
+    plrvx : null,
+    plrvy : null,
+    plrdrag : 0.85
   },
-  lesserdashr : {
-    vx : 0,
-    vy : 0
+  lesserdashl : {
+    span : [50, 100],
+    statesvx : [-20, -10],
+    statesvy : [0, 0],
+    plrvx : null,
+    plrvy : null,
+    plrdrag : 0.85
   }
 } ;
 
@@ -205,6 +221,7 @@ function draw() {
   determineTimeSinceLastInput();
   processInputs();
   attackFunctionGrouper(inputtedHitbox);
+  movementTechFunctionGrouper(inputtedMovementTech);
   dummyOnKb();
   if (!entity.player.isattacking) {
     playerSettings();
@@ -284,7 +301,6 @@ function PlrGravitySim() {
 function DummyGravitySim() {
   entity.dummy.vy += GRAVITY;
   entity.dummy.y += entity.dummy.vy;
-
 }
   
 
@@ -295,7 +311,68 @@ function DummyGravitySim() {
 
 
 
-// I SO NEED TO FIX THIS AREA WHEN I GET TO SPRITES AND STUFF OH GOD
+
+function movementTechFunctionGrouper(input) {
+  determinePlrMTechStates(input);
+  plrMovementOnMTech(input);
+
+}
+
+function determinePlrMTechStates(input) {
+  if (input) {
+
+    let easeinFrames = input.span[0];
+    let easeoutFrames = input.span[0] + input.span[1];
+
+    if (millis() <= mtechBirthTime + easeinFrames) {
+      entity.player.ismovingtech = entity.player.movementstates[0];
+
+    }
+    else if (millis() <= mtechBirthTime + easeoutFrames) {
+      entity.player.ismovingtech = entity.player.movementstates[1];
+ 
+    }
+    else {
+      entity.player.ismovingtech = false;
+      if (millis() >= mtechBirthTime + easeoutFrames + INSURANCE) {
+
+        inputtedMovementTech = false;
+      }
+    }
+  }
+}
+function plrMovementOnMTech(input) {
+  if (input) {
+    let identifier = entity.player.movementstates.indexOf(entity.player.ismovingtech);
+    if (entity.player.ismovingtech) {
+      entity.player.vy = 0;
+      input.plrvx = input.statesvx[identifier];
+      input.plrvy = input.statesvy[identifier];
+      entity.player.x += input.plrvx;
+      entity.player.y += input.plrvy;
+    }
+    else if(!entity.player.ismovingtech) {
+      entity.player.y += input.plrvy;
+      entity.player.x += input.plrvx;
+      input.plrvy *= input.plrdrag;
+      input.plrvx *= input.plrdrag;
+
+      console.log(input.plrvx);
+
+      if (input.plrvy > 0 && entity.player.y >= height - SIZE/2 || entity.player.y <= 0 + SIZE/2) {
+        input.plrvy = 0;
+      }
+    }
+  }
+}
+
+
+
+
+
+
+
+
 function attackFunctionGrouper(input) {
   determinePlrAttackStates(input);
   plrMovementOnAtk(input);
@@ -305,9 +382,9 @@ function attackFunctionGrouper(input) {
 function determinePlrAttackStates(input) {
   if (input) {
 
-    let windup = input.atkspan[0];
-    let activeframes = input.atkspan[0] + input.atkspan[1];
-    let endlag = input.atkspan[0] + input.atkspan[1] + input.atkspan[2];
+    let windup = input.span[0];
+    let activeframes = input.span[0] + input.span[1];
+    let endlag = input.span[0] + input.span[1] + input.span[2];
 
     if (millis() <= hitboxBirthTime + windup) {
       entity.player.isattacking = entity.player.atkstates[0];
@@ -324,7 +401,6 @@ function determinePlrAttackStates(input) {
       if (millis() >= hitboxBirthTime + endlag + INSURANCE) {
         inputtedHitbox = false;
       }
-    
     }
   }
 }
@@ -476,6 +552,7 @@ function keyPressed() {
       lastAtkInpTime = millis();
 
       attackInputStorage.push(testingAThing);
+      
     }
     if (allowedMovementInputs.includes(key)) {
       testingMThing = key;
@@ -483,6 +560,11 @@ function keyPressed() {
       lastMoveInpTime = millis();
 
       movementInputStorage.push(testingMThing);
+      console.log(movementInputStorage);
+    }
+    if (key === 'r') {
+      attackInputStorage = [];
+      movementInputStorage = [];
     }
   }
 }
@@ -506,18 +588,19 @@ function processInputs() {
       hitboxBirthTime = millis();
       entity.player.isattacking = true;
     }
+  }
 
-    if (movementInputStorage.length >= 3) {
+  if (movementInputStorage.length >= 3) {
       let getMoveFirstThreeInputs = movementInputStorage.splice(0,3);
       let firstMoveItemCollective = getMoveFirstThreeInputs.join('');
       movementSequenceStorage.push(firstMoveItemCollective);
-    }
+    
     let currentMoveSequence = movementSequenceStorage.splice(0,1)[0];
     let moveActions = {
-      'asd' : 'somethingelse',
-      'awd' : 'right-greater-dash',
-      'dsa' : 'left-lesser-dash',
-      'dwa' : 'left-greater-dash',
+      'asd' : movementtech.lesserdashr,
+      'awd' : movementtech.greatdashr,
+      'dsa' : movementtech.lesserdashl,
+      'dwa' : movementtech.greatdashl
     } ; 
     if (currentMoveSequence && moveActions[currentMoveSequence]) {
       inputtedMovementTech = moveActions[currentMoveSequence];
@@ -526,4 +609,3 @@ function processInputs() {
     }
   }
 }
-
