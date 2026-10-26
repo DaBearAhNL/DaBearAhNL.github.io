@@ -291,45 +291,8 @@ function DummyGravitySim() {
 
 
 
-function processInputs() {
-  if (attackInputStorage.length >= 3) {
-    let getAtkFirstThreeInputs = attackInputStorage.splice(0,3);
-    let firstAtkItemCollective = getAtkFirstThreeInputs.join('');
-    attackSequenceStorage.push(firstAtkItemCollective);
 
-    let currentAtkSequence = attackSequenceStorage.splice(0,1);
-    let atkActions = {
-      'lkm' : hitboxes.basic,
-      'kmk' : hitboxes.downslam,
-      'lkl' : hitboxes.uppercut,
-      'kll' : hitboxes.uptilt,
-      'kmm' : hitboxes.dropkick,
-    } ; 
-    if (currentAtkSequence && atkActions[currentAtkSequence]) {
-      inputtedHitbox = atkActions[currentAtkSequence];
-      hitboxBirthTime = millis();
-      entity.player.isattacking = true;
-    }
 
-    if (movementInputStorage.length >= 3) {
-      let getMoveFirstThreeInputs = movementInputStorage.splice(0,3);
-      let firstMoveItemCollective = getMoveFirstThreeInputs.join('');
-      movementSequenceStorage.push(firstMoveItemCollective);
-    }
-    let currentMoveSequence = movementSequenceStorage.splice(0,1)[0];
-    let moveActions = {
-      'asd' : 'somethingelse',
-      'awd' : 'right-greater-dash',
-      'dsa' : 'left-lesser-dash',
-      'dwa' : 'left-greater-dash',
-    } ; 
-    if (currentMoveSequence && moveActions[currentMoveSequence]) {
-      inputtedMovementTech = moveActions[currentMoveSequence];
-      mtechBirthTime = millis();
-      entity.player.ismovingtech = true;
-    }
-  }
-}
 
 
 // I SO NEED TO FIX THIS AREA WHEN I GET TO SPRITES AND STUFF OH GOD
@@ -461,6 +424,11 @@ function dummyOnKb() {
   }
 }
 
+
+
+
+
+
 function screenShake() {
   if (screenShakeAmount > 0.5) {
     shakeX = random(-screenShakeIntensity, screenShakeIntensity)
@@ -476,6 +444,10 @@ function screenShake() {
     screenShakeIntensity = 0;
   }
 }
+
+
+
+
 
 
 
@@ -496,7 +468,6 @@ function determineTimeSinceLastInput() {
   }
 }
 
-
 function keyPressed() {
   if (!entity.player.isattacking || entity.player.isattacking === entity.player.atkstates[2]) { 
     if (allowedAttackInputs.includes(key)) {
@@ -506,13 +477,52 @@ function keyPressed() {
 
       attackInputStorage.push(testingAThing);
     }
-
     if (allowedMovementInputs.includes(key)) {
       testingMThing = key;
       isCurMoveInputting = true;
       lastMoveInpTime = millis();
 
       movementInputStorage.push(testingMThing);
+    }
+  }
+}
+
+function processInputs() {
+  if (attackInputStorage.length >= 3) {
+    let getAtkFirstThreeInputs = attackInputStorage.splice(0,3);
+    let firstAtkItemCollective = getAtkFirstThreeInputs.join('');
+    attackSequenceStorage.push(firstAtkItemCollective);
+
+    let currentAtkSequence = attackSequenceStorage.splice(0,1);
+    let atkActions = {
+      'lkm' : hitboxes.basic,
+      'kmk' : hitboxes.downslam,
+      'lkl' : hitboxes.uppercut,
+      'kll' : hitboxes.uptilt,
+      'kmm' : hitboxes.dropkick,
+    } ; 
+    if (currentAtkSequence && atkActions[currentAtkSequence]) {
+      inputtedHitbox = atkActions[currentAtkSequence];
+      hitboxBirthTime = millis();
+      entity.player.isattacking = true;
+    }
+
+    if (movementInputStorage.length >= 3) {
+      let getMoveFirstThreeInputs = movementInputStorage.splice(0,3);
+      let firstMoveItemCollective = getMoveFirstThreeInputs.join('');
+      movementSequenceStorage.push(firstMoveItemCollective);
+    }
+    let currentMoveSequence = movementSequenceStorage.splice(0,1)[0];
+    let moveActions = {
+      'asd' : 'somethingelse',
+      'awd' : 'right-greater-dash',
+      'dsa' : 'left-lesser-dash',
+      'dwa' : 'left-greater-dash',
+    } ; 
+    if (currentMoveSequence && moveActions[currentMoveSequence]) {
+      inputtedMovementTech = moveActions[currentMoveSequence];
+      mtechBirthTime = millis();
+      entity.player.ismovingtech = true;
     }
   }
 }
