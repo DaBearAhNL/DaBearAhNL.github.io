@@ -294,14 +294,14 @@ function AnimSprite(spriteSheet, yface, framesby, offsetx, offsety, xscale, ysca
 
     image(this.sheet, 0, 0, this.h*xscale, this.h*yscale,
       this.h*floor(this.curframe), 0, this.h, this.h
-    )
+    ) ;
 
     pop();
 
     if (!hitstopAmount) {
       this.curframe += this.framesby;
-    }
-  }
+    } ;
+  } ;
 }
 
 
@@ -313,21 +313,21 @@ async function setup() {
 
   // Loading all vfx and sfx
   heavyAttackSprites = await loadImage("Sprites/heavyattack.png");
-  lightAttackSprites = await loadImage("Sprites/lightattack.png")
-  dashAttackSprites = await loadImage("Sprites/dashattack.png")
+  lightAttackSprites = await loadImage("Sprites/lightattack.png");
+  dashAttackSprites = await loadImage("Sprites/dashattack.png");
 
-  hitboxes.basic.sfx = await loadSound("SoundEffects/LightAttack.wav")
-  hitboxes.uppercut.sfx = await loadSound("SoundEffects/HeavyAttack.wav")
-  hitboxes.downslam.sfx = await loadSound("SoundEffects/HeavyAttack.wav")
-  hitboxes.uptilt.sfx = await loadSound("SoundEffects/DashAttackHit.wav")
-  hitboxes.dropkick.sfx = await loadSound("SoundEffects/DashAttackHit.wav")
+  hitboxes.basic.sfx = await loadSound("SoundEffects/LightAttack.wav");
+  hitboxes.uppercut.sfx = await loadSound("SoundEffects/HeavyAttack.wav");
+  hitboxes.downslam.sfx = await loadSound("SoundEffects/HeavyAttack.wav");
+  hitboxes.uptilt.sfx = await loadSound("SoundEffects/DashAttackHit.wav");
+  hitboxes.dropkick.sfx = await loadSound("SoundEffects/DashAttackHit.wav");
 
-  movementtech.greatdashl.sfx = await loadSound("SoundEffects/GreaterDash.wav")
-  movementtech.greatdashr.sfx = await loadSound("SoundEffects/GreaterDash.wav")
-  movementtech.lesserdashl.sfx = await loadSound("SoundEffects/LesserDash.wav")
-  movementtech.lesserdashr.sfx = await loadSound("SoundEffects/LesserDash.wav")
+  movementtech.greatdashl.sfx = await loadSound("SoundEffects/GreaterDash.wav");
+  movementtech.greatdashr.sfx = await loadSound("SoundEffects/GreaterDash.wav");
+  movementtech.lesserdashl.sfx = await loadSound("SoundEffects/LesserDash.wav");
+  movementtech.lesserdashr.sfx = await loadSound("SoundEffects/LesserDash.wav");
 
- // Initiating entity settings
+  // Initiating entity settings
   entity  = {
     player : {
       x : width - width/3*2,
