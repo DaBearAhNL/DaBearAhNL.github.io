@@ -61,6 +61,8 @@ let hitboxes = {
     amountss : 20,
     intensityss : 2.5,
     hsamount : 5,
+
+    anim : null
   } ,
   uppercut : {
     sizes : [SIZE-SIZE/3, -SIZE/2, SIZE, SIZE*2.25],
@@ -77,6 +79,8 @@ let hitboxes = {
     amountss : 15,
     intensityss : 5,
     hsamount : 35,
+
+    anim : null
   } , 
   downslam : {
     sizes : [SIZE-SIZE/3, SIZE/2, SIZE, SIZE*2.25],
@@ -93,6 +97,8 @@ let hitboxes = {
     amountss : 15,
     intensityss : 5,
     hsamount : 35,
+
+    anim : null
   } ,
   uptilt : {
     sizes : [SIZE/1.5, -SIZE/1.5, SIZE*1.25, SIZE*1.25],
@@ -109,6 +115,8 @@ let hitboxes = {
     amountss : 15,
     intensityss : 5,
     hsamount : 20,
+
+    anim : null
   } ,
   dropkick : {
     sizes : [SIZE/1.5, SIZE/1.5, SIZE*1.25, SIZE*1.25],
@@ -125,6 +133,8 @@ let hitboxes = {
     amountss : 15,
     intensityss : 5,
     hsamount : 20,
+
+    anim : null
   }
 } ; 
 
@@ -168,10 +178,49 @@ let movementtech = {
 
 let entity;
 
+let heavyAttackSprites;
+let lightAttackSprites;
+let dashAttackSprites;
+
+
+function AnimSprite(spriteSheet) {
+  this.sheet = spriteSheet;
+  this.x = entity.player.x;
+  this.y = entity.player.y;
+  this.h = spriteSheet.height;
+  this.curframe = 0;
+  this.totalframes = spriteSheet.width / spriteSheet.height;
+
+  this.draw = function() {
+    this.x = entity.player.x;
+    this.y = entity.player.y;
+
+    push();
+    translate(this.x, this.y);
+    scale(entity.player.facedir, -1);
+
+    image(this.sheet, 0, 0, this.h, this.h,
+      this.h*floor(this.curframe), 0, this.h, this.h
+    )
+
+    pop();
+
+    this.curframe += 0.5;
+    if (this.curframe >= this.totalframes) {
+      this.curframe = 0;
+    }
+  }
+}
+
 
 async function setup() {
   rectMode(CENTER);
   createCanvas(windowWidth, windowHeight);
+
+  heavyAttackSprites = await loadImage("heavyattack.png");
+  lightAttackSprites = await loadImage("lightattack.png")
+  dashAttackSprites = await loadImage("dashattack.png")
+
   entity  = {
     player : {
       x : width - width/3*2,
@@ -198,10 +247,14 @@ async function setup() {
       vertstates : ['onGround', 'midFall', 'midJump'],
       vx : 0,
       vy : 0,
-    } 
+    }
   } ;
   rectMode(CENTER);
   imageMode(CENTER);
+
+  dashing = new AnimSprite(dashAttackSprites);
+
+  
 }
 
 
@@ -209,8 +262,6 @@ function draw() {
   background(220);
 
   screenShake();
-  
-
   spawnEntities();
   
 
@@ -233,7 +284,18 @@ function draw() {
   
   entitySettings();
   displayHitbox(inputtedHitbox);
+
+  
 }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -407,6 +469,7 @@ function determinePlrAttackStates(input) {
 
 function displayHitbox(input) {
   if (input) {
+    dashing.draw();
     if (entity.player.isattacking === entity.player.atkstates[0]) {
       fill('blue');
       rect(input.sizes[0] * entity.player.facedir + entity.player.x, input.sizes[1] + entity.player.y, input.sizes[2], input.sizes[3]);
@@ -466,6 +529,7 @@ function hitboxCollide(input) {
       screenShakeAmount = input.amountss;
       screenShakeIntensity = input.intensityss;
       hitstopAmount = input.hsamount;
+      
     }
   }
 }
@@ -520,6 +584,11 @@ function screenShake() {
     screenShakeIntensity = 0;
   }
 }
+
+
+
+
+
 
 
 
