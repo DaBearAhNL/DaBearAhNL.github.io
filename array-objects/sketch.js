@@ -3,11 +3,11 @@
 // Date
 //
 // Extra for Experts:
-// - describe what you did to take this project "above and beyond"
+// In this project, I learned how to use the class functions and sprite cycling with the help of this tutorial : https://www.youtube.com/watch?v=eE65ody9MdI&t=202s.
+// I also do hope you consider the complexity of my code as an extra for experts.
 
-// ok the plan is that if u input a certain sequence of keys you do an action like in fighting games
-// problem is its not a fighting game without hitting something
-// a.
+// sir this comment is from 10:16 pm on the due date im currently fighting against time to get the sound effects in and making it look clean.
+// this project has gotta be the one to make my heart race the most.
 
 const NO_INPUTS_DETECTED = 100;
 const TERMINATE_INPUT_STORAGE = 500;
@@ -62,10 +62,16 @@ let hitboxes = {
     intensityss : 2.5,
     hsamount : 5,
 
-    anim : null
+    anim : null,
+    yfaceanim : 1,
+    framesby : 0.75,
+    animoffsetx : SIZE+SIZE/1.95,
+    animoffsety : 0,
+    xscale : 2,
+    yscale : 2.5,
   } ,
   uppercut : {
-    sizes : [SIZE-SIZE/3, -SIZE/2, SIZE, SIZE*2.25],
+    sizes : [SIZE-SIZE/3, -SIZE/2, SIZE, SIZE*2.5],
     span : [250,150,100],
     statesvx : [7.5,2.5,2.5],
     statesvy : [0, 0, 0],
@@ -80,10 +86,16 @@ let hitboxes = {
     intensityss : 5,
     hsamount : 35,
 
-    anim : null
+    anim : null,
+    yfaceanim : 1,
+    framesby : 0.35,
+    animoffsetx : 10,
+    animoffsety : 0,
+    xscale : 2,
+    yscale : 4,
   } , 
   downslam : {
-    sizes : [SIZE-SIZE/3, SIZE/2, SIZE, SIZE*2.25],
+    sizes : [SIZE-SIZE/3, SIZE/2, SIZE, SIZE*2.5],
     span : [250,300,200],
     statesvx : [7.5,2.5,2.5],
     statesvy : [0, 0, 0],
@@ -98,7 +110,13 @@ let hitboxes = {
     intensityss : 5,
     hsamount : 35,
 
-    anim : null
+    anim : null,
+    yfaceanim : -1,
+    framesby : 0.35,
+    animoffsetx : 10,
+    animoffsety : 0,
+    xscale : 2,
+    yscale : 4,
   } ,
   uptilt : {
     sizes : [SIZE/1.5, -SIZE/1.5, SIZE*1.25, SIZE*1.25],
@@ -116,7 +134,13 @@ let hitboxes = {
     intensityss : 5,
     hsamount : 20,
 
-    anim : null
+    anim : null,
+    yfaceanim : -1,
+    framesby : 1,
+    animoffsetx : 0,
+    animoffsety : 0,
+    xscale : 2,
+    yscale : 1.5,
   } ,
   dropkick : {
     sizes : [SIZE/1.5, SIZE/1.5, SIZE*1.25, SIZE*1.25],
@@ -134,7 +158,13 @@ let hitboxes = {
     intensityss : 5,
     hsamount : 20,
 
-    anim : null
+    anim : null,
+    yfaceanim : 1,
+    framesby : 1,
+    animoffsetx : 0,
+    animoffsety : 0,
+    xscale : 2,
+    yscale : 1.5,
   }
 } ; 
 
@@ -178,37 +208,45 @@ let movementtech = {
 
 let entity;
 
+let animations;
 let heavyAttackSprites;
 let lightAttackSprites;
 let dashAttackSprites;
 
 
-function AnimSprite(spriteSheet) {
+function AnimSprite(spriteSheet, yface, framesby, offsetx, offsety, xscale, yscale) {
   this.sheet = spriteSheet;
   this.x = entity.player.x;
   this.y = entity.player.y;
   this.h = spriteSheet.height;
   this.curframe = 0;
   this.totalframes = spriteSheet.width / spriteSheet.height;
+  this.yface = yface;
+  this.framesby = framesby;
+  this.offsetx = offsetx;
+  this.offsety = offsety;
+  this.xscale = xscale;
+  this.yscale = yscale;
 
   this.draw = function() {
-    this.x = entity.player.x;
-    this.y = entity.player.y;
+    
+    this.x = entity.player.x + offsetx * entity.player.facedir;
+    this.y = entity.player.y + offsety;
 
     push();
     translate(this.x, this.y);
-    scale(entity.player.facedir, -1);
+    scale(entity.player.facedir, this.yface);
 
-    image(this.sheet, 0, 0, this.h, this.h,
+    image(this.sheet, 0, 0, this.h*xscale, this.h*yscale,
       this.h*floor(this.curframe), 0, this.h, this.h
     )
 
     pop();
 
-    this.curframe += 0.5;
-    if (this.curframe >= this.totalframes) {
-      this.curframe = 0;
+    if (!hitstopAmount) {
+      this.curframe += this.framesby;
     }
+    
   }
 }
 
@@ -221,6 +259,7 @@ async function setup() {
   lightAttackSprites = await loadImage("lightattack.png")
   dashAttackSprites = await loadImage("dashattack.png")
 
+ 
   entity  = {
     player : {
       x : width - width/3*2,
@@ -249,10 +288,29 @@ async function setup() {
       vy : 0,
     }
   } ;
+
+  hitboxes.basic.anim = new AnimSprite(lightAttackSprites, hitboxes.basic.yfaceanim, hitboxes.basic.framesby,
+    hitboxes.basic.animoffsetx, hitboxes.basic.animoffsety, hitboxes.basic.xscale, hitboxes.basic.yscale
+  );
+  hitboxes.downslam.anim = new AnimSprite(heavyAttackSprites, hitboxes.downslam.yfaceanim, hitboxes.downslam.framesby,
+    hitboxes.downslam.animoffsetx, hitboxes.downslam.animoffsety, hitboxes.downslam.xscale, hitboxes.downslam.yscale
+  );
+  hitboxes.uppercut.anim = new AnimSprite(heavyAttackSprites, hitboxes.uppercut.yfaceanim, hitboxes.uppercut.framesby,
+    hitboxes.uppercut.animoffsetx, hitboxes.uppercut.animoffsety, hitboxes.uppercut.xscale, hitboxes.uppercut.yscale
+  );
+  hitboxes.uptilt.anim = new AnimSprite(dashAttackSprites, hitboxes.uptilt.yfaceanim, hitboxes.uptilt.framesby,
+    hitboxes.uptilt.animoffsetx, hitboxes.uptilt.animoffsety, hitboxes.uptilt.xscale, hitboxes.uptilt.yscale
+  );
+  hitboxes.dropkick.anim = new AnimSprite(dashAttackSprites, hitboxes.dropkick.yfaceanim, hitboxes.dropkick.framesby,
+    hitboxes.dropkick.animoffsetx, hitboxes.dropkick.animoffsety, hitboxes.dropkick.xscale, hitboxes.dropkick.yscale
+  );
+
   rectMode(CENTER);
   imageMode(CENTER);
 
-  dashing = new AnimSprite(dashAttackSprites);
+  
+
+
 
   
 }
@@ -284,6 +342,7 @@ function draw() {
   
   entitySettings();
   displayHitbox(inputtedHitbox);
+  displaySprite(inputtedHitbox);
 
   
 }
@@ -469,7 +528,7 @@ function determinePlrAttackStates(input) {
 
 function displayHitbox(input) {
   if (input) {
-    dashing.draw();
+    
     if (entity.player.isattacking === entity.player.atkstates[0]) {
       fill('blue');
       rect(input.sizes[0] * entity.player.facedir + entity.player.x, input.sizes[1] + entity.player.y, input.sizes[2], input.sizes[3]);
@@ -505,8 +564,6 @@ function plrMovementOnAtk(input) {
       if (input.plrvy > 0 && entity.player.y >= height - SIZE/2 || entity.player.y <= 0 + SIZE/2) {
         input.plrvy = 0;
       }
-
-    
     }
   }
 }
@@ -530,6 +587,17 @@ function hitboxCollide(input) {
       screenShakeIntensity = input.intensityss;
       hitstopAmount = input.hsamount;
       
+    }
+  }
+}
+
+function displaySprite(input) {
+   
+  if (input) {
+    let totalhitboxlife = input.span[0] + input.span[1] + input.span[2];
+
+    if (millis() <= hitboxBirthTime + totalhitboxlife) {
+      input.anim.draw();
     }
   }
 }
@@ -655,6 +723,7 @@ function processInputs() {
     if (currentAtkSequence && atkActions[currentAtkSequence]) {
       inputtedHitbox = atkActions[currentAtkSequence];
       hitboxBirthTime = millis();
+      inputtedHitbox.anim.curframe = 0;
       entity.player.isattacking = true;
     }
   }
