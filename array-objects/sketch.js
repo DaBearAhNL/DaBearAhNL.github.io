@@ -68,7 +68,9 @@ let hitboxes = {
     animoffsetx : SIZE+SIZE/1.95,
     animoffsety : 0,
     xscale : 2,
-    yscale : 2.5,
+    yscale : 3,
+
+    sfx : null,
   } ,
   uppercut : {
     sizes : [SIZE-SIZE/3, -SIZE/2, SIZE, SIZE*2.5],
@@ -93,6 +95,8 @@ let hitboxes = {
     animoffsety : 0,
     xscale : 2,
     yscale : 4,
+
+    sfx : null,
   } , 
   downslam : {
     sizes : [SIZE-SIZE/3, SIZE/2, SIZE, SIZE*2.5],
@@ -117,6 +121,8 @@ let hitboxes = {
     animoffsety : 0,
     xscale : 2,
     yscale : 4,
+
+    sfx : null,
   } ,
   uptilt : {
     sizes : [SIZE/1.5, -SIZE/1.5, SIZE*1.25, SIZE*1.25],
@@ -141,6 +147,8 @@ let hitboxes = {
     animoffsety : 0,
     xscale : 2,
     yscale : 1.5,
+
+    sfx : null,
   } ,
   dropkick : {
     sizes : [SIZE/1.5, SIZE/1.5, SIZE*1.25, SIZE*1.25],
@@ -165,9 +173,12 @@ let hitboxes = {
     animoffsety : 0,
     xscale : 2,
     yscale : 1.5,
+
+    sfx : null,
   }
 } ; 
 
+let soundOnMTech = false;
 let inputtedMovementTech;
 let mtechBirthTime = 0;
 
@@ -255,9 +266,22 @@ async function setup() {
   rectMode(CENTER);
   createCanvas(windowWidth, windowHeight);
 
-  heavyAttackSprites = await loadImage("heavyattack.png");
-  lightAttackSprites = await loadImage("lightattack.png")
-  dashAttackSprites = await loadImage("dashattack.png")
+  heavyAttackSprites = await loadImage("Sprites/heavyattack.png");
+  lightAttackSprites = await loadImage("Sprites/lightattack.png")
+  dashAttackSprites = await loadImage("Sprites/dashattack.png")
+
+  hitboxes.basic.sfx = await loadSound("SoundEffects/LightAttack.wav")
+  hitboxes.uppercut.sfx = await loadSound("SoundEffects/HeavyAttack.wav")
+  hitboxes.downslam.sfx = await loadSound("SoundEffects/HeavyAttack.wav")
+  hitboxes.uptilt.sfx = await loadSound("SoundEffects/DashAttackHit.wav")
+  hitboxes.dropkick.sfx = await loadSound("SoundEffects/DashAttackHit.wav")
+
+  movementtech.greatdashl.sfx = await loadSound("SoundEffects/GreaterDash.wav")
+  movementtech.greatdashr.sfx = await loadSound("SoundEffects/GreaterDash.wav")
+  movementtech.lesserdashl.sfx = await loadSound("SoundEffects/LesserDash.wav")
+  movementtech.lesserdashr.sfx = await loadSound("SoundEffects/LesserDash.wav")
+
+
 
  
   entity  = {
@@ -436,6 +460,7 @@ function DummyGravitySim() {
 function movementTechFunctionGrouper(input) {
   determinePlrMTechStates(input);
   plrMovementOnMTech(input);
+  playSoundOnMovement(input);
 
 }
 
@@ -458,6 +483,7 @@ function determinePlrMTechStates(input) {
       if (millis() >= mtechBirthTime + easeoutFrames + INSURANCE) {
 
         inputtedMovementTech = false;
+
       }
     }
   }
@@ -484,6 +510,12 @@ function plrMovementOnMTech(input) {
         input.plrvy = 0;
       }
     }
+  }
+}
+function playSoundOnMovement(input) {
+  if (input && soundOnMTech) {
+    input.sfx.play();
+    soundOnMTech = false;
   }
 }
 
@@ -525,7 +557,6 @@ function determinePlrAttackStates(input) {
     }
   }
 }
-
 function displayHitbox(input) {
   if (input) {
     
@@ -541,7 +572,6 @@ function displayHitbox(input) {
       fill('green');
       rect(input.sizes[0] * entity.player.facedir + entity.player.x, input.sizes[1] + entity.player.y, input.sizes[2], input.sizes[3]);
     }
-    
   }
 }
 
@@ -586,6 +616,8 @@ function hitboxCollide(input) {
       screenShakeAmount = input.amountss;
       screenShakeIntensity = input.intensityss;
       hitstopAmount = input.hsamount;
+
+      input.sfx.play();
       
     }
   }
@@ -743,6 +775,7 @@ function processInputs() {
     if (currentMoveSequence && moveActions[currentMoveSequence]) {
       inputtedMovementTech = moveActions[currentMoveSequence];
       mtechBirthTime = millis();
+      soundOnMTech = true;
       entity.player.ismovingtech = true;
     }
   }
