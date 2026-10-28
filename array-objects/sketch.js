@@ -735,14 +735,6 @@ function screenShake() { // Shakes the screen during valid hit
 
 
 
-
-
-
-
-
-
-
-
 // --------------- INPUT FUNCTIONS --------------- //
 function determineTimeSinceLastInput() { // Insurance to not let the mtech or attack array holding and grouping valid inputs to be filled with invalid keys
   // For attack array
@@ -832,4 +824,4 @@ function processInputs() { // Checks either attack or mtech array
 }
 
 
-// GRAHRHAGHRGAGRAG 835 LINES RAHHHHHHHHHHHHHHHH
+// GRAHRHAGHRGAGRAG 827 LINES RAHHHHHHHHHHHHHHHH
