@@ -14,6 +14,7 @@
 - [Randomized Art](10-art)
 - [Images and Sound fx](11-loading-assets)
 - [Grid Demo](12-grid)
+- [Rect Grid](13-rect-grid)
 
 ## Projects
 
