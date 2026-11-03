@@ -15,8 +15,10 @@
 - [Images and Sound fx](11-loading-assets)
 - [Grid Demo](12-grid)
 - [Rect Grid](13-rect-grid)
+- [Conways Game of Life](14-conways-game-of-life)
 
 ## Projects
 
 - [Interactive Scene](scene)
 - [Arrays and Object Notation](array-objects)
+- [Grid-Based Game](grid-game)
