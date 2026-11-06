@@ -16,6 +16,7 @@
 - [Grid Demo](12-grid)
 - [Rect Grid](13-rect-grid)
 - [Conways Game of Life](14-conways-game-of-life)
+- [Character In Grid](15-character)
 
 ## Projects
 

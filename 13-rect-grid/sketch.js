@@ -93,5 +93,3 @@ function generateEmptyGrid(cols, rows) {
   }
   return newGrid;
 }
-
-
