@@ -5,29 +5,48 @@
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
 
-let testing;
-class entity {
-  createThing(x, y, height, width) {
-    this.x = x;
-    this.y = y;
-    this.h = height;
-    this.w = width;
-
-    rect(this.x, this.y, this.h, this.w);
-  }
-  
-}
+const CELL_SIZE = 30;
+const BORDER_RANGE = CELL_SIZE/10;
+let rows;
+let cols;
+let grid;
 
 async function setup() {
   createCanvas(windowWidth, windowHeight);
+  rectMode(CENTER);
 
-  testing = new entity;
+  cols = Math.floor(height/CELL_SIZE);
+  rows = Math.floor(width/CELL_SIZE);
+  grid = formGrid(cols, rows);
 }
 
 function draw() {
   background(220);
 
-  testing.createThing(500, 200, 60, 100);
+  displayGrid(cols, rows);
 
 }
 
+function formGrid(cols, rows) {
+  let placeHolderGrid = [];
+  for (let y = 0; y < cols; y++) {
+    placeHolderGrid.push([]);
+    for (let x = 0; x < rows; x++) {
+      placeHolderGrid[y].push(0);
+    }
+  }
+  return placeHolderGrid;
+}
+
+function displayGrid(cols, rows) {
+  for (let y = 0; y < cols; y++) {
+    if (y > Math.floor(BORDER_RANGE) && y < Math.floor(cols - BORDER_RANGE)) {
+      for (let x = 0; x < rows; x++) {
+        if  (x > Math.floor(BORDER_RANGE) && x < Math.floor(rows - BORDER_RANGE)) {
+          fill('white');
+          square(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE)
+        }
+      }
+    }
+  }
+}
