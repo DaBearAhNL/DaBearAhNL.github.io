@@ -14,6 +14,7 @@ async function setup() {
   rows = Math.floor(height/CELL_SIZE);
   cols = Math.floor(width/CELL_SIZE);
   grid = generateRandomGrid(cols, rows);
+  
 }
 
 function draw() {

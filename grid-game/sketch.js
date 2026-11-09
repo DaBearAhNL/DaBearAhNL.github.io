@@ -10,6 +10,8 @@ const BORDER_RANGE = CELL_SIZE/10;
 let rows;
 let cols;
 let grid;
+let stoneImg;
+let purpleImg;
 
 async function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -32,7 +34,7 @@ function formGrid(cols, rows) {
   for (let y = 0; y < cols; y++) {
     placeHolderGrid.push([]);
     for (let x = 0; x < rows; x++) {
-      placeHolderGrid[y].push(0);
+      placeHolderGrid[y].push(1);
     }
   }
   return placeHolderGrid;
@@ -40,13 +42,23 @@ function formGrid(cols, rows) {
 
 function displayGrid(cols, rows) {
   for (let y = 0; y < cols; y++) {
-    if (y > Math.floor(BORDER_RANGE) && y < Math.floor(cols - BORDER_RANGE)) {
+    if (borderHandler(y, cols)) {
       for (let x = 0; x < rows; x++) {
-        if  (x > Math.floor(BORDER_RANGE) && x < Math.floor(rows - BORDER_RANGE)) {
+        if  (borderHandler(x, rows) && grid[y][x] === 1) {
           fill('white');
-          square(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE)
+          square(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE);
         }
       }
     }
+  }
+}
+
+function borderHandler(value, dependency) {
+  // returns true within playable area, false if not
+  if (value > Math.floor(BORDER_RANGE) && value < Math.floor(dependency - BORDER_RANGE)) {
+    return true;
+  }
+  else {
+    return false;
   }
 }

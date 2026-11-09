@@ -16,6 +16,9 @@ let rows;
 let cols;
 let grid;
 
+let stoneImg;
+let purpleImg;
+
 async function setup() {
   createCanvas(windowWidth, windowHeight);
   rows = Math.floor(height/CELL_SIZE);
@@ -24,6 +27,9 @@ async function setup() {
   // put player in grid
 
   grid[thePlayer.y][thePlayer.x] = PLAYER;
+  stoneImg =  await loadImage("stone.png");
+  purpleImg = await loadImage("purple.png");
+
 }
 
 function draw() {
@@ -99,15 +105,17 @@ function displayGrid() {
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
       if (grid[y][x] === CELL_STATE.open) {
-        fill('white');
+        // fill('white');
+        image(stoneImg, x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
       }
       else if (grid[y][x] === CELL_STATE.closed) {
-        fill('black');
+        // fill('black');
+        image(purpleImg, x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
       }
       else if (grid[y][x] === PLAYER) {
         fill('red');
+        square(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE);
       }
-      square(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE);
     }
   }
 }
