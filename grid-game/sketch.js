@@ -5,26 +5,24 @@
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
 
-const CELL_SIZE = 35;
+const CELL_SIZE = 30;
 const BORDER_RANGE = CELL_SIZE/10;
 let rows;
 let cols;
 let grid;
-let stoneImg;
-let purpleImg;
 
 async function setup() {
   createCanvas(windowWidth, windowHeight);
   rectMode(CENTER);
 
   cols = Math.floor(height/CELL_SIZE);
-  rows = Math.floor(height/CELL_SIZE);
+  rows = Math.floor(width/CELL_SIZE);
   grid = formGrid(cols, rows);
 }
 
 function draw() {
   background(220);
-  displayGrid(cols, rows, grid);
+  displayGrid(cols, rows);
 
 }
 
@@ -46,21 +44,18 @@ function formGrid(cols, rows) {
 
 function displayGrid(cols, rows) {
   for (let y = 0; y < cols; y++) {
-    if (borderHandler(y, cols)) {
-      for (let x = 0; x < rows; x++) {
-        if (borderHandler(x, rows)) {
-          if (grid[y][x] === 1) {
-            fill('white');
-          }
-          else if (grid[y][x] === 0) {
-            fill('black');
-          }
-          square(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE);
-        }
+    for (let x = 0; x < rows; x++) {
+      if (grid[y][x] === 1) {
+        fill('white');
       }
+      else if (grid[y][x] === 0) {
+        fill('black');
+      }
+      square(x * CELL_SIZE+CELL_SIZE/1.8, y * CELL_SIZE+CELL_SIZE/1.35, CELL_SIZE);
     }
   }
 }
+
 
 function borderHandler(value, dependency) {
   // returns true within playable area, false if not
