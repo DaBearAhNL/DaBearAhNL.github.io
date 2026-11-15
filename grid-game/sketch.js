@@ -6,10 +6,19 @@
 // - describe what you did to take this project "above and beyond"
 
 const CELL_SIZE = 30;
-const BORDER = {
-  x : CELL_SIZE/1,
-  y : CELL_SIZE/5,
+const BASE_PLAYABLE_FIELD_DIMENSIONS = {
+  width : CELL_SIZE * 20,
+  height : CELL_SIZE * 15
+} ;
+const LIMITING_TRANSFORMATION_FIELD_DIMENSIONS = {
+  width : 750,
+  height : 550
 } ; 
+
+let fieldCoords = {
+  x : 0,
+  y : 0
+}
 
 let rows;
 let cols;
@@ -19,30 +28,31 @@ async function setup() {
   createCanvas(windowWidth, windowHeight);
   rectMode(CENTER);
 
-  
+  fieldCoords.x = width/2;
+  fieldCoords.y = height/2;
 
   cols = Math.floor(height/CELL_SIZE);
   rows = Math.floor(width/CELL_SIZE);
-  grid = formGrid(cols, rows);
+  grid = formBaseGrid(cols, rows);
 }
 
 function draw() {
   background(220);
-  displayGrid(cols, rows);
+  moveRect();
+  rect(fieldCoords.x, fieldCoords.y, BASE_PLAYABLE_FIELD_DIMENSIONS.width, BASE_PLAYABLE_FIELD_DIMENSIONS.height);
+  grid = displayField(cols, rows);
 
+  
+  displayGrid(cols, rows);
+  
 }
 
-function formGrid(cols, rows) {
+function formBaseGrid(cols, rows) {
   let placeHolderGrid = [];
   for (let y = 0; y < cols; y++) {
     placeHolderGrid.push([]);
     for (let x = 0; x < rows; x++) {
-      if (borderHandler(x, rows, y, cols)) {
-        placeHolderGrid[y].push(1);
-      }
-      else {
-        placeHolderGrid[y].push(0);
-      }
+      placeHolderGrid[y].push(1);
     }
   }
   return placeHolderGrid;
@@ -57,16 +67,32 @@ function displayGrid(cols, rows) {
       else if (grid[y][x] === 0) {
         fill('black');
       }
-      square(x * CELL_SIZE + CELL_SIZE/2, y * CELL_SIZE + CELL_SIZE/2, CELL_SIZE);
+      rect(x * CELL_SIZE + CELL_SIZE/2, y * CELL_SIZE + CELL_SIZE/2, CELL_SIZE, CELL_SIZE);
     }
   }
 }
 
+function displayField(cols, rows) {
+  let nextFrame = formBaseGrid(cols, rows);
 
-function borderHandler(xValue, xLimit, yValue, yLimit) {
+  for (let y = 0; y < cols; y++) {
+    for (let x = 0; x < rows; x++) {
+      if (borderHandler(x * CELL_SIZE + CELL_SIZE/2, y * CELL_SIZE + CELL_SIZE/2)) {
+        nextFrame[y][x] = 1;
+      }
+      else {
+        nextFrame[y][x] = 0;
+      }
+    }
+  }
+
+  return nextFrame;
+}
+
+function borderHandler(xCoords, yCoords) {
   // returns true within playable area, false if not
-  if (xValue > Math.floor(BORDER.x) && xValue < Math.floor(xLimit - BORDER.x) &&
-  yValue > Math.floor(BORDER.y) && yValue < Math.floor(yLimit - BORDER.y)) {
+  if (xCoords > Math.floor(fieldCoords.x - BASE_PLAYABLE_FIELD_DIMENSIONS.width/2) && xCoords < Math.floor(fieldCoords.x + BASE_PLAYABLE_FIELD_DIMENSIONS.width/2) &&
+  yCoords > Math.floor(fieldCoords.y - BASE_PLAYABLE_FIELD_DIMENSIONS.height/2) && yCoords < Math.floor(fieldCoords.y + BASE_PLAYABLE_FIELD_DIMENSIONS.height/2)) {
     return true;
   }
   else {
@@ -74,44 +100,55 @@ function borderHandler(xValue, xLimit, yValue, yLimit) {
   }
 }
 
-function mousePressed() {
-  grid[Math.floor(mouseY/CELL_SIZE)] = moveToRight(Math.floor(mouseY/CELL_SIZE), 2);
+function moveRect() {
+  if (keyIsDown('a')) {
+    fieldCoords.x -= 5;
+  }
+  if (keyIsDown('d')) {
+    fieldCoords.x += 5;
+  }
+  if (keyIsDown('s')) {
+    fieldCoords.y += 5;
+  }
+  if (keyIsDown('w')) {
+    fieldCoords.y -= 5;
+  }
 }
 
-function detectDistanceFromLeft(y, x) {
-  let distance = 0;
+// function detectDistanceFromLeft(y, x) {
+//   let distance = 0;
   
-  for (let tile = x; tile >= 0; tile--) {
-    if (grid[y][tile] === 0) {
-      return distance;
-    }
-    else if (grid[y][tile] === 1) {
-      distance++;
-    }
-  }
-}
+//   for (let tile = x; tile >= 0; tile--) {
+//     if (grid[y][tile] === 0) {
+//       return distance;
+//     }
+//     else if (grid[y][tile] === 1) {
+//       distance++;
+//     }
+//   }
+// }
 
-function moveToRight(y, amountby) {
-  let holder = [];
-  for (let tile in grid[y]) {
-    let recorder = detectDistanceFromLeft(y, tile);
-    if (grid[y][tile] === 1) {
-      if (recorder <= amountby) {
-        holder.push(0)
-      }
-      else if (recorder > amountby) {
-        holder.push(1)
-      }
-    }
-    else if (grid[y][tile] === 0) {
-      if (grid[y][tile - amountby] === 1) {
-        holder.push(1)
-      }
-      else {
-        holder.push(0)
-      }
-    }
-    // holder.push(detectDistanceFromRight(y, tile))
-  }
-  return holder;
-}
+// function moveToRight(y, amountby) {
+//   let holder = [];
+//   for (let tile in grid[y]) {
+//     let recorder = detectDistanceFromLeft(y, tile);
+//     if (grid[y][tile] === 1) {
+//       if (recorder <= amountby) {
+//         holder.push(0)
+//       }
+//       else if (recorder > amountby) {
+//         holder.push(1)
+//       }
+//     }
+//     else if (grid[y][tile] === 0) {
+//       if (grid[y][tile - amountby] === 1) {
+//         holder.push(1)
+//       }
+//       else {
+//         holder.push(0)
+//       }
+//     }
+//     // holder.push(detectDistanceFromRight(y, tile))
+//   }
+//   return holder;
+// }
