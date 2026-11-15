@@ -7,7 +7,7 @@
 
 const CELL_SIZE = 30;
 const BORDER = {
-  x : CELL_SIZE/5,
+  x : CELL_SIZE/1,
   y : CELL_SIZE/5,
 } ; 
 
@@ -75,18 +75,43 @@ function borderHandler(xValue, xLimit, yValue, yLimit) {
 }
 
 function mousePressed() {
-  console.log(detectDistanceFromRight(Math.floor(mouseY/CELL_SIZE), Math.floor(mouseX/CELL_SIZE)));
+  grid[Math.floor(mouseY/CELL_SIZE)] = moveToRight(Math.floor(mouseY/CELL_SIZE), 2);
 }
 
-function detectDistanceFromRight(y, x) {
-  let holder = 0;
+function detectDistanceFromLeft(y, x) {
+  let distance = 0;
   
-  for (let tile = x; tile <= rows; tile--) {
+  for (let tile = x; tile >= 0; tile--) {
     if (grid[y][tile] === 0) {
-      return [holder, y, grid[y].indexOf(1)];
+      return distance;
     }
     else if (grid[y][tile] === 1) {
-      holder++;
+      distance++;
     }
   }
+}
+
+function moveToRight(y, amountby) {
+  let holder = [];
+  for (let tile in grid[y]) {
+    let recorder = detectDistanceFromLeft(y, tile);
+    if (grid[y][tile] === 1) {
+      if (recorder <= amountby) {
+        holder.push(0)
+      }
+      else if (recorder > amountby) {
+        holder.push(1)
+      }
+    }
+    else if (grid[y][tile] === 0) {
+      if (grid[y][tile - amountby] === 1) {
+        holder.push(1)
+      }
+      else {
+        holder.push(0)
+      }
+    }
+    // holder.push(detectDistanceFromRight(y, tile))
+  }
+  return holder;
 }
