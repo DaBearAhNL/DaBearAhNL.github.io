@@ -11,14 +11,14 @@ const BASE_PLAYABLE_FIELD_DIMENSIONS = {
   height : CELL_SIZE * 15
 } ;
 const LIMITING_TRANSFORMATION_FIELD_DIMENSIONS = {
-  width : (CELL_SIZE * 20) + CELL_SIZE * 5,
-  height : (CELL_SIZE * 15) + CELL_SIZE * 5
+  width : CELL_SIZE * 20 + CELL_SIZE * 5,
+  height : CELL_SIZE * 15 + CELL_SIZE * 5
 } ; 
 
 let fieldCoords = {
   x : 0,
   y : 0
-}
+} ;
 
 let rows;
 let cols;
@@ -39,13 +39,14 @@ async function setup() {
 function draw() {
   background(220);
   moveRect();
-  rect(fieldCoords.x, fieldCoords.y, LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.width, LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.height);
-  rect(fieldCoords.x, fieldCoords.y, BASE_PLAYABLE_FIELD_DIMENSIONS.width, BASE_PLAYABLE_FIELD_DIMENSIONS.height);
+  
 
   grid = displayField(cols, rows);
 
-  
+  rect(fieldCoords.x, fieldCoords.y, LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.width, LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.height);
+  rect(fieldCoords.x, fieldCoords.y, BASE_PLAYABLE_FIELD_DIMENSIONS.width, BASE_PLAYABLE_FIELD_DIMENSIONS.height);
   displayGrid(cols, rows);
+  
   
 
 }
@@ -68,7 +69,10 @@ function displayGrid(cols, rows) {
         fill('white');
       }
       else if (grid[y][x] === 0) {
-        fill('black');
+        fill('red');
+      }
+      else if (grid[y][x] === 2) {
+        fill('gray');
       }
       rect(x * CELL_SIZE + CELL_SIZE/2, y * CELL_SIZE + CELL_SIZE/2, CELL_SIZE, CELL_SIZE);
     }
@@ -80,6 +84,7 @@ function displayField(cols, rows) {
 
   for (let y = 0; y < cols; y++) {
     for (let x = 0; x < rows; x++) {
+      let withins;
       if (borderHandler(x * CELL_SIZE + CELL_SIZE/2, y * CELL_SIZE + CELL_SIZE/2)) {
         nextFrame[y][x] = 1;
       }
@@ -94,13 +99,38 @@ function displayField(cols, rows) {
 
 function borderHandler(xCoords, yCoords) {
   // returns true within playable area, false if not
-  if (xCoords > Math.floor(fieldCoords.x - BASE_PLAYABLE_FIELD_DIMENSIONS.width/2) && xCoords < Math.floor(fieldCoords.x + BASE_PLAYABLE_FIELD_DIMENSIONS.width/2) &&
-  yCoords > Math.floor(fieldCoords.y - BASE_PLAYABLE_FIELD_DIMENSIONS.height/2) && yCoords < Math.floor(fieldCoords.y + BASE_PLAYABLE_FIELD_DIMENSIONS.height/2)) {
-    return true;
+  
+
+  let leftMinBorder = Math.floor(fieldCoords.x - BASE_PLAYABLE_FIELD_DIMENSIONS.width/2);
+  let rightMinBorder = Math.floor(fieldCoords.x + BASE_PLAYABLE_FIELD_DIMENSIONS.width/2);
+  let upMinBorder = Math.floor(fieldCoords.y - BASE_PLAYABLE_FIELD_DIMENSIONS.height/2);
+  let downMinBorder = Math.floor(fieldCoords.y + BASE_PLAYABLE_FIELD_DIMENSIONS.height/2);
+
+  let leftMaxBorder = Math.floor(fieldCoords.x - LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.width/2);
+  let rightMaxBorder = Math.floor(fieldCoords.x + LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.width/2);
+  let upMaxBorder = Math.floor(fieldCoords.x - LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.height/2);
+  let downMaxBorder = Math.floor(fieldCoords.x + LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.height/2);
+
+  let withinMin = false;
+  let withinMax = false;
+  
+  if (xCoords > leftMinBorder && xCoords < rightMinBorder &&
+  yCoords > upMinBorder && yCoords < downMinBorder) {
+    withinMin = true;
   }
   else {
-    return false;
+    withinMin = false;
   }
+
+  if (xCoords < leftMinBorder && xCoords > rightMinBorder && xCoords > leftMaxBorder && xCoords < rightMaxBorder &&
+  yCoords < upMinBorder && yCoords > downMinBorder && yCoords > upMaxBorder && yCoords < downMaxBorder) {
+    withinMax = true;
+  }
+  else {
+    withinMax = false;
+  }
+
+  return { withinMin, withinMax };
 }
 
 function moveRect() {
