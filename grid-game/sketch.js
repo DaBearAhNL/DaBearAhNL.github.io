@@ -11,8 +11,8 @@ const BASE_PLAYABLE_FIELD_DIMENSIONS = {
   height : CELL_SIZE * 15
 } ;
 const LIMITING_TRANSFORMATION_FIELD_DIMENSIONS = {
-  width : 750,
-  height : 550
+  width : (CELL_SIZE * 20) + CELL_SIZE * 5,
+  height : (CELL_SIZE * 15) + CELL_SIZE * 5
 } ; 
 
 let fieldCoords = {
@@ -39,12 +39,15 @@ async function setup() {
 function draw() {
   background(220);
   moveRect();
+  rect(fieldCoords.x, fieldCoords.y, LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.width, LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.height);
   rect(fieldCoords.x, fieldCoords.y, BASE_PLAYABLE_FIELD_DIMENSIONS.width, BASE_PLAYABLE_FIELD_DIMENSIONS.height);
+
   grid = displayField(cols, rows);
 
   
   displayGrid(cols, rows);
   
+
 }
 
 function formBaseGrid(cols, rows) {
