@@ -47,8 +47,6 @@ function draw() {
   rect(fieldCoords.x, fieldCoords.y, BASE_PLAYABLE_FIELD_DIMENSIONS.width, BASE_PLAYABLE_FIELD_DIMENSIONS.height);
   displayGrid(cols, rows);
   
-  
-
 }
 
 function formBaseGrid(cols, rows) {
@@ -84,9 +82,15 @@ function displayField(cols, rows) {
 
   for (let y = 0; y < cols; y++) {
     for (let x = 0; x < rows; x++) {
-      let withins;
-      if (borderHandler(x * CELL_SIZE + CELL_SIZE/2, y * CELL_SIZE + CELL_SIZE/2)) {
+      let curTileX = x * CELL_SIZE + CELL_SIZE/2;
+      let curTileY = y * CELL_SIZE + CELL_SIZE/2;
+      let [min, max] = borderHandler(curTileX, curTileY)
+
+      if (min && max) {
         nextFrame[y][x] = 1;
+      }
+      else if (!min && max) {
+        nextFrame[y][x] = 2;
       }
       else {
         nextFrame[y][x] = 0;
@@ -100,7 +104,6 @@ function displayField(cols, rows) {
 function borderHandler(xCoords, yCoords) {
   // returns true within playable area, false if not
   
-
   let leftMinBorder = Math.floor(fieldCoords.x - BASE_PLAYABLE_FIELD_DIMENSIONS.width/2);
   let rightMinBorder = Math.floor(fieldCoords.x + BASE_PLAYABLE_FIELD_DIMENSIONS.width/2);
   let upMinBorder = Math.floor(fieldCoords.y - BASE_PLAYABLE_FIELD_DIMENSIONS.height/2);
@@ -108,30 +111,20 @@ function borderHandler(xCoords, yCoords) {
 
   let leftMaxBorder = Math.floor(fieldCoords.x - LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.width/2);
   let rightMaxBorder = Math.floor(fieldCoords.x + LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.width/2);
-  let upMaxBorder = Math.floor(fieldCoords.x - LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.height/2);
-  let downMaxBorder = Math.floor(fieldCoords.x + LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.height/2);
+  let upMaxBorder = Math.floor(fieldCoords.y - LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.height/2);
+  let downMaxBorder = Math.floor(fieldCoords.y + LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.height/2);
+ 
+  let withinMin = 
+    xCoords > leftMinBorder && xCoords < rightMinBorder &&
+    yCoords > upMinBorder && yCoords < downMinBorder;
 
-  let withinMin = false;
-  let withinMax = false;
-  
-  if (xCoords > leftMinBorder && xCoords < rightMinBorder &&
-  yCoords > upMinBorder && yCoords < downMinBorder) {
-    withinMin = true;
-  }
-  else {
-    withinMin = false;
-  }
+  let withinMax = 
+    xCoords > leftMaxBorder && xCoords < rightMaxBorder &&
+    yCoords > upMaxBorder && yCoords < downMaxBorder;
 
-  if (xCoords < leftMinBorder && xCoords > rightMinBorder && xCoords > leftMaxBorder && xCoords < rightMaxBorder &&
-  yCoords < upMinBorder && yCoords > downMinBorder && yCoords > upMaxBorder && yCoords < downMaxBorder) {
-    withinMax = true;
-  }
-  else {
-    withinMax = false;
-  }
-
-  return { withinMin, withinMax };
+  return [withinMin, withinMax];
 }
+
 
 function moveRect() {
   if (keyIsDown('a')) {
