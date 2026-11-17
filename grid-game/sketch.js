@@ -23,6 +23,7 @@ let fieldCoords = {
 let rows;
 let cols;
 let grid;
+let field;
 
 async function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -41,11 +42,11 @@ function draw() {
   moveRect();
   
 
-  grid = displayField(cols, rows);
+  grid = formField(cols, rows);
 
   rect(fieldCoords.x, fieldCoords.y, LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.width, LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.height);
   rect(fieldCoords.x, fieldCoords.y, BASE_PLAYABLE_FIELD_DIMENSIONS.width, BASE_PLAYABLE_FIELD_DIMENSIONS.height);
-  displayGrid(cols, rows);
+  displayTiles(cols, rows);
   
 }
 
@@ -60,7 +61,7 @@ function formBaseGrid(cols, rows) {
   return placeHolderGrid;
 }
 
-function displayGrid(cols, rows) {
+function displayTiles(cols, rows) {
   for (let y = 0; y < cols; y++) {
     for (let x = 0; x < rows; x++) {
       if (grid[y][x] === 1) {
@@ -77,14 +78,14 @@ function displayGrid(cols, rows) {
   }
 }
 
-function displayField(cols, rows) {
+function formField(cols, rows) {
   let nextFrame = formBaseGrid(cols, rows);
 
   for (let y = 0; y < cols; y++) {
     for (let x = 0; x < rows; x++) {
       let curTileX = x * CELL_SIZE + CELL_SIZE/2;
       let curTileY = y * CELL_SIZE + CELL_SIZE/2;
-      let [min, max] = borderHandler(curTileX, curTileY)
+      let [min, max] = borderHandler(curTileX, curTileY);
 
       if (min && max) {
         nextFrame[y][x] = 1;
@@ -97,8 +98,30 @@ function displayField(cols, rows) {
       }
     }
   }
-
   return nextFrame;
+}
+
+function testRecordingFieldCoord(cols, rows) {
+  let nextField = [];
+
+  for (let y = 0; y < cols; y++) {
+    nextField.push([]);
+    for (let x = 0; x < rows; x++) {
+      let curTileX = x * CELL_SIZE + CELL_SIZE/2;
+      let curTileY = y * CELL_SIZE + CELL_SIZE/2;
+      let [min, max] = borderHandler(curTileX, curTileY);
+
+      if (max) {
+        nextField[y].push(`${Math.floor(curTileX/CELL_SIZE)}, ${Math.floor(curTileY/CELL_SIZE)}`);
+      }
+      
+    }
+  }
+  return nextField;
+}
+
+function mousePressed() {
+  console.log(testRecordingFieldCoord(cols, rows));
 }
 
 function borderHandler(xCoords, yCoords) {
@@ -140,6 +163,25 @@ function moveRect() {
     fieldCoords.y -= 5;
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // function detectDistanceFromLeft(y, x) {
 //   let distance = 0;
