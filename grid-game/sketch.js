@@ -5,14 +5,17 @@
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
 
+const FIELD_SPEED = 6;
 const CELL_SIZE = 30;
-const BASE_PLAYABLE_FIELD_DIMENSIONS = {
-  width : CELL_SIZE * 20,
-  height : CELL_SIZE * 15
+const BASE_FIELD_DIMS = {
+  width : CELL_SIZE * 15,
+  height : CELL_SIZE * 12,
+  specify : 'inner'
 } ;
-const LIMITING_TRANSFORMATION_FIELD_DIMENSIONS = {
-  width : CELL_SIZE * 20 + CELL_SIZE * 5,
-  height : CELL_SIZE * 15 + CELL_SIZE * 5
+const TRANSFORMABLE_FIELD_DIMS = {
+  width : BASE_FIELD_DIMS.width + 4*CELL_SIZE,
+  height : BASE_FIELD_DIMS.height + 4*CELL_SIZE,
+  specify : 'outer'
 } ; 
 
 let fieldCoords = {
@@ -26,22 +29,24 @@ let grid;
 let field;
 
 
-let testingoutX = 0;
-let testingoutY = 0;
-
-
-
 
 async function setup() {
   createCanvas(windowWidth, windowHeight);
   rectMode(CENTER);
+  noStroke();
 
   fieldCoords.x = width/2;
   fieldCoords.y = height/2;
 
   cols = Math.floor(height/CELL_SIZE);
   rows = Math.floor(width/CELL_SIZE);
-  grid = formBaseGrid(cols, rows);
+  if (cols % 2 === 1) {
+    cols -=1;
+  }
+  if (rows % 2 === 1) {
+    rows -=1;
+  }
+  grid = initializeGrid(cols, rows);
 }
 
 function draw() {
@@ -50,21 +55,16 @@ function draw() {
   
   
   grid = formField(cols, rows);
-  selectTile(testRecordingFieldCoord(cols, rows))
+  selectTile(recordFieldCoords(cols, rows));
 
-  rect(fieldCoords.x, fieldCoords.y, LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.width, LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.height);
-  rect(fieldCoords.x, fieldCoords.y, BASE_PLAYABLE_FIELD_DIMENSIONS.width, BASE_PLAYABLE_FIELD_DIMENSIONS.height);
+  rect(fieldCoords.x, fieldCoords.y, TRANSFORMABLE_FIELD_DIMS.width, TRANSFORMABLE_FIELD_DIMS.height);
+  rect(fieldCoords.x, fieldCoords.y, BASE_FIELD_DIMS.width, BASE_FIELD_DIMS.height);
   displayTiles(cols, rows);
   
 }
 
 
-
-
-
-
-
-function formBaseGrid(cols, rows) {
+function initializeGrid(cols, rows) {
   let placeHolderGrid = [];
   for (let y = 0; y < cols; y++) {
     placeHolderGrid.push([]);
@@ -96,13 +96,13 @@ function displayTiles(cols, rows) {
 }
 
 function formField(cols, rows) {
-  let nextFrame = formBaseGrid(cols, rows);
+  let nextFrame = initializeGrid(cols, rows);
 
   for (let y = 0; y < cols; y++) {
     for (let x = 0; x < rows; x++) {
       let curTileX = x * CELL_SIZE + CELL_SIZE/2;
       let curTileY = y * CELL_SIZE + CELL_SIZE/2;
-      let [min, max] = borderHandler(curTileX, curTileY);
+      let [min, max] = borderHandler(curTileX, curTileY, false, false);
 
       if (min && max) {
         nextFrame[y][x] = 1;
@@ -118,7 +118,7 @@ function formField(cols, rows) {
   return nextFrame;
 }
 
-function testRecordingFieldCoord(cols, rows) {
+function recordFieldCoords(cols, rows) {
   let nextField = [];
   let rowCounter = 0;
 
@@ -126,16 +126,16 @@ function testRecordingFieldCoord(cols, rows) {
 
     let curTileY = y * CELL_SIZE + CELL_SIZE/2;
 
-    if (testingMoreBordersY(curTileY)) {
+    if (borderHandler(null, curTileY, TRANSFORMABLE_FIELD_DIMS.specify, 2)) {
       nextField.push([]);
       
       for (let x = 0; x < rows; x++) {
 
         let curTileX = x * CELL_SIZE + CELL_SIZE/2;
 
-        if (testingMoreBordersX(curTileX)) {
-          let relativeX = curTileX - (fieldCoords.x - LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.width/2);
-          let relativeY = curTileY - (fieldCoords.y - LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.height/2);
+        if (borderHandler(curTileX, null, TRANSFORMABLE_FIELD_DIMS.specify, 1)) {
+          let relativeX = curTileX - (fieldCoords.x - TRANSFORMABLE_FIELD_DIMS.width/2);
+          let relativeY = curTileY - (fieldCoords.y - TRANSFORMABLE_FIELD_DIMS.height/2);
 
           let tileX = Math.floor(relativeX/CELL_SIZE);
           let tileY = Math.floor(relativeY/CELL_SIZE);
@@ -155,140 +155,70 @@ function selectTile(selection) {
   let selectedY = newField[5];
   let selectedTile = selectedY[5];
 
-  let borderY = fieldCoords.y - LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.height/2
-  let borderX = fieldCoords.x - LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.width/2
+  let borderY = fieldCoords.y - TRANSFORMABLE_FIELD_DIMS.height/2;
+  let borderX = fieldCoords.x - TRANSFORMABLE_FIELD_DIMS.width/2;
   
   let correspondingY = selectedTile.y + Math.floor(borderY / CELL_SIZE);
   let correspondingX = selectedTile.x + Math.floor(borderX / CELL_SIZE);
 
   grid[correspondingY][correspondingX] = 3;
-  console.log(grid[correspondingY][correspondingX])
+  console.log(grid[correspondingY][correspondingX]);
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-function borderHandler(xCoords, yCoords) {
+function borderHandler(xCoords, yCoords, specifics, orientation) {
   // returns true within playable area, false if not
+  let withins = [false, false];
   
-  let leftMinBorder = Math.floor(fieldCoords.x - BASE_PLAYABLE_FIELD_DIMENSIONS.width/2);
-  let rightMinBorder = Math.floor(fieldCoords.x + BASE_PLAYABLE_FIELD_DIMENSIONS.width/2);
-  let upMinBorder = Math.floor(fieldCoords.y - BASE_PLAYABLE_FIELD_DIMENSIONS.height/2);
-  let downMinBorder = Math.floor(fieldCoords.y + BASE_PLAYABLE_FIELD_DIMENSIONS.height/2);
+  let leftMinBorder = Math.floor(fieldCoords.x - BASE_FIELD_DIMS.width/2);
+  let rightMinBorder = Math.floor(fieldCoords.x + BASE_FIELD_DIMS.width/2);
+  let upMinBorder = Math.floor(fieldCoords.y - BASE_FIELD_DIMS.height/2);
+  let downMinBorder = Math.floor(fieldCoords.y + BASE_FIELD_DIMS.height/2);
 
-  let leftMaxBorder = Math.floor(fieldCoords.x - LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.width/2);
-  let rightMaxBorder = Math.floor(fieldCoords.x + LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.width/2);
-  let upMaxBorder = Math.floor(fieldCoords.y - LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.height/2);
-  let downMaxBorder = Math.floor(fieldCoords.y + LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.height/2);
- 
-  let withinMin = 
-    xCoords > leftMinBorder && xCoords < rightMinBorder &&
-    yCoords > upMinBorder && yCoords < downMinBorder;
+  let leftMaxBorder = Math.floor(fieldCoords.x - TRANSFORMABLE_FIELD_DIMS.width/2);
+  let rightMaxBorder = Math.floor(fieldCoords.x + TRANSFORMABLE_FIELD_DIMS.width/2);
+  let upMaxBorder = Math.floor(fieldCoords.y - TRANSFORMABLE_FIELD_DIMS.height/2);
+  let downMaxBorder = Math.floor(fieldCoords.y + TRANSFORMABLE_FIELD_DIMS.height/2);
 
-  let withinMax = 
-    xCoords > leftMaxBorder && xCoords < rightMaxBorder &&
-    yCoords > upMaxBorder && yCoords < downMaxBorder;
+  if (specifics && orientation) {
+    if (specifics === 'inner') {
+      withins[0] = xCoords > leftMinBorder && xCoords < rightMinBorder;
+      withins[1] = yCoords > upMinBorder && yCoords < downMinBorder;
+    }
+    else if (specifics === 'outer') {
+      withins[0] = xCoords > leftMaxBorder && xCoords < rightMaxBorder;
+      withins[1] = yCoords > upMaxBorder && yCoords < downMaxBorder;
+    }
 
-  return [withinMin, withinMax];
-}
+    return withins[orientation - 1];
+  }
 
-function testingMoreBordersY(yCoords) {
-  let upMaxBorder = Math.floor(fieldCoords.y - LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.height/2);
-  let downMaxBorder = Math.floor(fieldCoords.y + LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.height/2);
+  else {
+    withins[0] = 
+      xCoords > leftMinBorder && xCoords < rightMinBorder &&
+      yCoords > upMinBorder && yCoords < downMinBorder;
 
-  let withinBorderY = yCoords > upMaxBorder && yCoords < downMaxBorder;
+    withins[1] = 
+      xCoords > leftMaxBorder && xCoords < rightMaxBorder &&
+      yCoords > upMaxBorder && yCoords < downMaxBorder;
+  }
 
-  return withinBorderY;
-}
-
-function testingMoreBordersX(xCoords) {
-  let leftMaxBorder = Math.floor(fieldCoords.x - LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.width/2);
-  let rightMaxBorder = Math.floor(fieldCoords.x + LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.width/2);
-
-  let withinBorderX = xCoords > leftMaxBorder && xCoords < rightMaxBorder;
-
-  return withinBorderX;
+  return [withins[0], withins[1]];
 }
 
 
 function moveRect() {
   if (keyIsDown('a')) {
-    fieldCoords.x -= 5;
+    fieldCoords.x -= FIELD_SPEED;
   }
   if (keyIsDown('d')) {
-    fieldCoords.x += 5;
+    fieldCoords.x += FIELD_SPEED;
   }
   if (keyIsDown('s')) {
-    fieldCoords.y += 5;
+    fieldCoords.y += FIELD_SPEED;
   }
   if (keyIsDown('w')) {
-    fieldCoords.y -= 5;
+    fieldCoords.y -= FIELD_SPEED;
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// function detectDistanceFromLeft(y, x) {
-//   let distance = 0;
-  
-//   for (let tile = x; tile >= 0; tile--) {
-//     if (grid[y][tile] === 0) {
-//       return distance;
-//     }
-//     else if (grid[y][tile] === 1) {
-//       distance++;
-//     }
-//   }
-// }
-
-// function moveToRight(y, amountby) {
-//   let holder = [];
-//   for (let tile in grid[y]) {
-//     let recorder = detectDistanceFromLeft(y, tile);
-//     if (grid[y][tile] === 1) {
-//       if (recorder <= amountby) {
-//         holder.push(0)
-//       }
-//       else if (recorder > amountby) {
-//         holder.push(1)
-//       }
-//     }
-//     else if (grid[y][tile] === 0) {
-//       if (grid[y][tile - amountby] === 1) {
-//         holder.push(1)
-//       }
-//       else {
-//         holder.push(0)
-//       }
-//     }
-//     // holder.push(detectDistanceFromRight(y, tile))
-//   }
-//   return holder;
-// }
