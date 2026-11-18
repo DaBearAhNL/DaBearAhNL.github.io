@@ -25,6 +25,13 @@ let cols;
 let grid;
 let field;
 
+
+let testingoutX = 0;
+let testingoutY = 0;
+
+
+
+
 async function setup() {
   createCanvas(windowWidth, windowHeight);
   rectMode(CENTER);
@@ -41,14 +48,21 @@ function draw() {
   background(220);
   moveRect();
   
+  
   grid = formField(cols, rows);
+  selectTile(testRecordingFieldCoord(cols, rows))
 
   rect(fieldCoords.x, fieldCoords.y, LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.width, LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.height);
   rect(fieldCoords.x, fieldCoords.y, BASE_PLAYABLE_FIELD_DIMENSIONS.width, BASE_PLAYABLE_FIELD_DIMENSIONS.height);
   displayTiles(cols, rows);
-
-
+  
 }
+
+
+
+
+
+
 
 function formBaseGrid(cols, rows) {
   let placeHolderGrid = [];
@@ -72,6 +86,9 @@ function displayTiles(cols, rows) {
       }
       else if (grid[y][x] === 2) {
         fill('gray');
+      }
+      else if (grid[y][x] === 3) {
+        fill('green');
       }
       rect(x * CELL_SIZE + CELL_SIZE/2, y * CELL_SIZE + CELL_SIZE/2, CELL_SIZE, CELL_SIZE);
     }
@@ -103,40 +120,62 @@ function formField(cols, rows) {
 
 function testRecordingFieldCoord(cols, rows) {
   let nextField = [];
+  let rowCounter = 0;
 
   for (let y = 0; y < cols; y++) {
-    nextField.push([]);
-    for (let x = 0; x < rows; x++) {
-      let curTileX = x * CELL_SIZE + CELL_SIZE/2;
-      let curTileY = y * CELL_SIZE + CELL_SIZE/2;
-      let [min, max] = borderHandler(curTileX, curTileY);
 
-      if (max) {
-        nextField[y].push({x : x, y : y});
+    let curTileY = y * CELL_SIZE + CELL_SIZE/2;
+
+    if (testingMoreBordersY(curTileY)) {
+      nextField.push([]);
+      
+      for (let x = 0; x < rows; x++) {
+
+        let curTileX = x * CELL_SIZE + CELL_SIZE/2;
+
+        if (testingMoreBordersX(curTileX)) {
+          let relativeX = curTileX - (fieldCoords.x - LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.width/2);
+          let relativeY = curTileY - (fieldCoords.y - LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.height/2);
+
+          let tileX = Math.floor(relativeX/CELL_SIZE);
+          let tileY = Math.floor(relativeY/CELL_SIZE);
+
+          nextField[rowCounter].push({x : tileX, y : tileY});
+        }
       }
+      rowCounter++;
     }
   }
   return nextField;
 }
 
-function mousePressed() {
-  console.log(testRecordingFieldCoord(cols, rows));
+function selectTile(selection) {
+  let newField = selection;
+
+  let selectedY = newField[5];
+  let selectedTile = selectedY[5];
+
+  let borderY = fieldCoords.y - LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.height/2
+  let borderX = fieldCoords.x - LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.width/2
+  
+  let correspondingY = selectedTile.y + Math.floor(borderY / CELL_SIZE);
+  let correspondingX = selectedTile.x + Math.floor(borderX / CELL_SIZE);
+
+  grid[correspondingY][correspondingX] = 3;
+  console.log(grid[correspondingY][correspondingX])
 }
 
-// function anotherTest(cols, rows) {
-//   let availableTiles = testRecordingFieldCoord(cols, rows);
 
-//   let randomRow = Math.floor(availableTiles.length);
-//   let randomCol = Math.floor(availableTiles[randomRow].length);
 
-//   let selectedTile = availableTiles[randomRow][randomCol];
 
-//   console.log(randomRow);
 
-//   // let spawnX = selectedTile.x * CELL_SIZE + CELL_SIZE/2;
-//   // let spawnY = selectedTile.y * CELL_SIZE + CELL_SIZE/2;
 
-// }
+
+
+
+
+
+
 
 
 function borderHandler(xCoords, yCoords) {
@@ -161,6 +200,24 @@ function borderHandler(xCoords, yCoords) {
     yCoords > upMaxBorder && yCoords < downMaxBorder;
 
   return [withinMin, withinMax];
+}
+
+function testingMoreBordersY(yCoords) {
+  let upMaxBorder = Math.floor(fieldCoords.y - LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.height/2);
+  let downMaxBorder = Math.floor(fieldCoords.y + LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.height/2);
+
+  let withinBorderY = yCoords > upMaxBorder && yCoords < downMaxBorder;
+
+  return withinBorderY;
+}
+
+function testingMoreBordersX(xCoords) {
+  let leftMaxBorder = Math.floor(fieldCoords.x - LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.width/2);
+  let rightMaxBorder = Math.floor(fieldCoords.x + LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.width/2);
+
+  let withinBorderX = xCoords > leftMaxBorder && xCoords < rightMaxBorder;
+
+  return withinBorderX;
 }
 
 
