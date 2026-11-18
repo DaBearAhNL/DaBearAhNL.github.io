@@ -41,13 +41,13 @@ function draw() {
   background(220);
   moveRect();
   
-
   grid = formField(cols, rows);
 
   rect(fieldCoords.x, fieldCoords.y, LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.width, LIMITING_TRANSFORMATION_FIELD_DIMENSIONS.height);
   rect(fieldCoords.x, fieldCoords.y, BASE_PLAYABLE_FIELD_DIMENSIONS.width, BASE_PLAYABLE_FIELD_DIMENSIONS.height);
   displayTiles(cols, rows);
-  
+
+
 }
 
 function formBaseGrid(cols, rows) {
@@ -112,9 +112,8 @@ function testRecordingFieldCoord(cols, rows) {
       let [min, max] = borderHandler(curTileX, curTileY);
 
       if (max) {
-        nextField[y].push(`${Math.floor(curTileX/CELL_SIZE)}, ${Math.floor(curTileY/CELL_SIZE)}`);
+        nextField[y].push({x : x, y : y});
       }
-      
     }
   }
   return nextField;
@@ -123,6 +122,22 @@ function testRecordingFieldCoord(cols, rows) {
 function mousePressed() {
   console.log(testRecordingFieldCoord(cols, rows));
 }
+
+// function anotherTest(cols, rows) {
+//   let availableTiles = testRecordingFieldCoord(cols, rows);
+
+//   let randomRow = Math.floor(availableTiles.length);
+//   let randomCol = Math.floor(availableTiles[randomRow].length);
+
+//   let selectedTile = availableTiles[randomRow][randomCol];
+
+//   console.log(randomRow);
+
+//   // let spawnX = selectedTile.x * CELL_SIZE + CELL_SIZE/2;
+//   // let spawnY = selectedTile.y * CELL_SIZE + CELL_SIZE/2;
+
+// }
+
 
 function borderHandler(xCoords, yCoords) {
   // returns true within playable area, false if not
