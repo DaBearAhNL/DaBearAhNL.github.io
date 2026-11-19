@@ -5,7 +5,7 @@
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
 
-const FIELD_SPEED = 6;
+const FIELD_SPEED = 5;
 const CELL_SIZE = 30;
 const BASE_FIELD_DIMS = {
   width : CELL_SIZE * 15,
@@ -33,7 +33,7 @@ let field;
 async function setup() {
   createCanvas(windowWidth, windowHeight);
   rectMode(CENTER);
-  noStroke();
+  
 
   fieldCoords.x = width/2;
   fieldCoords.y = height/2;
@@ -126,19 +126,19 @@ function recordFieldCoords(cols, rows) {
 
     let curTileY = y * CELL_SIZE + CELL_SIZE/2;
 
-    if (borderHandler(null, curTileY, TRANSFORMABLE_FIELD_DIMS.specify, 2)) {
+    if (borderHandler(null, curTileY, BASE_FIELD_DIMS.specify, 2)) {
       nextField.push([]);
       
       for (let x = 0; x < rows; x++) {
 
         let curTileX = x * CELL_SIZE + CELL_SIZE/2;
 
-        if (borderHandler(curTileX, null, TRANSFORMABLE_FIELD_DIMS.specify, 1)) {
-          let relativeX = curTileX - (fieldCoords.x - TRANSFORMABLE_FIELD_DIMS.width/2);
-          let relativeY = curTileY - (fieldCoords.y - TRANSFORMABLE_FIELD_DIMS.height/2);
+        if (borderHandler(curTileX, null, BASE_FIELD_DIMS.specify, 1)) {
+          let relativeX = curTileX - (fieldCoords.x - BASE_FIELD_DIMS.width/2);
+          let relativeY = curTileY - (fieldCoords.y - BASE_FIELD_DIMS.height/2);
 
-          let tileX = Math.floor(relativeX/CELL_SIZE);
-          let tileY = Math.floor(relativeY/CELL_SIZE);
+          let tileX = Math.floor(relativeX/CELL_SIZE + 0.5);
+          let tileY = Math.floor(relativeY/CELL_SIZE + 1);
 
           nextField[rowCounter].push({x : tileX, y : tileY});
         }
@@ -146,23 +146,24 @@ function recordFieldCoords(cols, rows) {
       rowCounter++;
     }
   }
+  
   return nextField;
 }
 
 function selectTile(selection) {
   let newField = selection;
 
-  let selectedY = newField[5];
-  let selectedTile = selectedY[5];
+  let selectedY = newField[Math.floor(Math.random() * newField.length)];
+  let selectedTile = selectedY[Math.floor(Math.random() * selectedY.length)];
 
-  let borderY = fieldCoords.y - TRANSFORMABLE_FIELD_DIMS.height/2;
-  let borderX = fieldCoords.x - TRANSFORMABLE_FIELD_DIMS.width/2;
+  let borderY = fieldCoords.y - BASE_FIELD_DIMS.height/2;
+  let borderX = fieldCoords.x - BASE_FIELD_DIMS.width/2;
   
   let correspondingY = selectedTile.y + Math.floor(borderY / CELL_SIZE);
   let correspondingX = selectedTile.x + Math.floor(borderX / CELL_SIZE);
 
   grid[correspondingY][correspondingX] = 3;
-  console.log(grid[correspondingY][correspondingX]);
+  console.log(correspondingX, correspondingY);
 }
 
 
@@ -210,15 +211,20 @@ function borderHandler(xCoords, yCoords, specifics, orientation) {
 function moveRect() {
   if (keyIsDown('a')) {
     fieldCoords.x -= FIELD_SPEED;
+    Math.floor[fieldCoords.x];
   }
   if (keyIsDown('d')) {
     fieldCoords.x += FIELD_SPEED;
+    Math.floor[fieldCoords.x];
   }
   if (keyIsDown('s')) {
     fieldCoords.y += FIELD_SPEED;
+    Math.floor[fieldCoords.y];
   }
   if (keyIsDown('w')) {
     fieldCoords.y -= FIELD_SPEED;
+    Math.floor[fieldCoords.y];
   }
+
 }
 
