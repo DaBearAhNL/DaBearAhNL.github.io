@@ -15,7 +15,6 @@ const CELLS = {
   walls : 5
 } ; 
 
-
 const FIELD_SPEED = 5;
 const FIELD_DIMS = {
   width : CELL_SIZE * 15,
@@ -34,6 +33,8 @@ let rows;
 let cols;
 let grid;
 let field;
+
+
 
 
 
@@ -142,7 +143,7 @@ function recordFieldCoords(cols, rows) {
           let relativeY = curTileY - (fieldCoords.y - FIELD_DIMS.height/2);
 
           let tileX = Math.floor(relativeX/CELL_SIZE + 0.5);
-          let tileY = Math.floor(relativeY/CELL_SIZE + 1);
+          let tileY = Math.floor(relativeY/CELL_SIZE + 0.5);
 
           nextField[rowCounter].push({x : tileX, y : tileY});
         }
@@ -168,8 +169,8 @@ function selectTile(selection) {
   let correspondingY = selectedTile.y + Math.floor(borderY / CELL_SIZE);
   let correspondingX = selectedTile.x + Math.floor(borderX / CELL_SIZE);
 
-  grid[correspondingY][correspondingX] = 3;
-  console.log(selectedTile);
+
+  console.log(correspondingX, correspondingY);
 }
 
 
@@ -194,23 +195,35 @@ function borderHandler(xCoords, yCoords, orientation) {
   
 }
 
+function fieldBorder() {
+  let withins = [false, false];
+
+  if (fieldCoords.x + FIELD_DIMS.width/2 > cols * CELL_SIZE || fieldCoords.x - FIELD_DIMS.width/2 <= 0) {
+    withins[0] = true; 
+  }
+  if (fieldCoords.y + FIELD_DIMS.height/2 > rows * CELL_SIZE || fieldCoords.y - FIELD_DIMS.height/2 <= 0) {
+    withins[1] = true; 
+  }
+
+  return withins.every(border => border);
+}
+
 function moveRect() {
-  if (keyIsDown('a')) {
-    fieldCoords.x -= FIELD_SPEED;
-    Math.floor[fieldCoords.x];
+  if (fieldBorder()) {
+    if (keyIsDown('a')) {
+      fieldCoords.x -= FIELD_SPEED;
+    }
+    if (keyIsDown('d')) {
+      fieldCoords.x += FIELD_SPEED;
+    }
+    if (keyIsDown('s')) {
+      fieldCoords.y += FIELD_SPEED;
+    }
+    if (keyIsDown('w')) {
+      fieldCoords.y -= FIELD_SPEED;
+    }
   }
-  if (keyIsDown('d')) {
-    fieldCoords.x += FIELD_SPEED;
-    Math.floor[fieldCoords.x];
-  }
-  if (keyIsDown('s')) {
-    fieldCoords.y += FIELD_SPEED;
-    Math.floor[fieldCoords.y];
-  }
-  if (keyIsDown('w')) {
-    fieldCoords.y -= FIELD_SPEED;
-    Math.floor[fieldCoords.y];
-  }
+  
 
 }
 
