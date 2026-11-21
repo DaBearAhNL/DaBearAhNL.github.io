@@ -9,7 +9,7 @@ const CELL_SIZE = 30;
 const CELLS = {
   void : 0,
   tiles : 1,
-  killTiles : 2,
+  killbricks : 2,
   coins : 3,
   player : 4,
   walls : 5
@@ -37,50 +37,60 @@ let field;
 let player;
 let playerSettings = {
   health : 100,
-  x : 0,
-  y : 0,
-
-
+  
 }
+
+let killBrickStorage = [];
+let coinStorage = [];
 
 
 class Player {
   constructor() {
+    this.curField = [];
+    this.fieldPosX = 3;
+    this.fieldPosY = 3;
+    this.gridPosX = 0;
+    this.gridPosY = 0;
+    this.prevGridPosX = 0;
+    this.prevGridPosY = 0;
+    this.cellType = CELLS.player;
+
+  }
+
+  recordTilePositionOnField() {
+    this.curField = recordFieldCoords(rows, cols);
+    let field = this.curField;
     
-    this.xPrime = 3;
-    this.yPrime = 3;
-    this.x = 0;
-    this.y = 0;
-    this.entity = 2;
+    let onRow = field[Math.floor(this.fieldPosY)];
+    let onTile = onRow[Math.floor(this.fieldPosX)]
+    
+    this.gridPosX = onTile.x;
+    this.gridPosY = onTile.y;
   }
 
-  select() {
-    let field = selectTile(recordFieldCoords(rows, cols), Math.floor(this.xPrime), Math.floor(this.yPrime))
-    this.x = field.x;
-    this.y = field.y;
-  }
-
-  spawn() {
-    grid[Math.floor(this.y)][Math.floor(this.x)] = this.entity;
+  display() {
+    grid[this.gridPosY][this.gridPosX] = this.cellType;
   }
 
   move() {
     if (keyIsDown('i')) {
-      this.yPrime -= 0.25;
+      this.fieldPosY -= 0.25;
     }
     if (keyIsDown('k')) {
-      this.yPrime += 0.25;
+      this.fieldPosY += 0.25;
     }
     if (keyIsDown('l')) {
-      this.xPrime += 0.25;
+      this.fieldPosX += 0.25;
     }
     if (keyIsDown('j')) {
-      this.xPrime -= 0.25;
+      this.fieldPosX -= 0.25;
     }
   }
 
   interactions() {
-
+    if (grid[this.gridPosY][this.gridPosX] === CELLS.killbricks) {
+      playerSettings.health--;
+    }
   }
 
 }
@@ -142,20 +152,32 @@ function draw() {
   
   
   grid = formField(rows, cols);
+  grid[12][16] = CELLS.killbricks;
   
- 
-  console.log(selectTile(recordFieldCoords(rows, cols), 2, 3).y);
-
   
   rect(fieldCoords.x, fieldCoords.y, FIELD_DIMS.width, FIELD_DIMS.height);
  
-  player.select();
-  player.spawn();
+  player.recordTilePositionOnField();
   player.move();
+  player.interactions();
+  player.display();
+  
+
+  console.log(playerSettings.health);
+
+  
   displayTiles(rows, cols);
   
   
 }
+
+
+
+
+
+
+
+
 
 
 function initializeGrid(rows, cols) {
@@ -181,7 +203,7 @@ function displayTiles(rows, cols) {
       else if (grid[y][x] === 2) {
         fill('gray');
       }
-      else if (grid[y][x] === 3) {
+      else if (grid[y][x] === 4) {
         fill('green');
       }
       rect(x * CELL_SIZE + CELL_SIZE/2, y * CELL_SIZE + CELL_SIZE/2, CELL_SIZE, CELL_SIZE);
