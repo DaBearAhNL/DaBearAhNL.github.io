@@ -17,7 +17,7 @@ const CELLS = {
 
 const FIELD_SPEED = 5;
 const FIELD_DIMS = {
-  width : CELL_SIZE * 15,
+  width : CELL_SIZE * 16,
   height : CELL_SIZE * 12,
   orientation : {
     verticals : 2,
@@ -34,58 +34,144 @@ let cols;
 let grid;
 let field;
 
+let player;
+let playerSettings = {
+  health : 100,
+  x : 0,
+  y : 0,
 
 
+}
 
+
+class Player {
+  constructor() {
+    
+    this.xPrime = 3;
+    this.yPrime = 3;
+    this.x = 0;
+    this.y = 0;
+    this.entity = 2;
+  }
+
+  select() {
+    let field = selectTile(recordFieldCoords(rows, cols), Math.floor(this.xPrime), Math.floor(this.yPrime))
+    this.x = field.x;
+    this.y = field.y;
+  }
+
+  spawn() {
+    grid[Math.floor(this.y)][Math.floor(this.x)] = this.entity;
+  }
+
+  move() {
+    if (keyIsDown('i')) {
+      this.yPrime -= 0.25;
+    }
+    if (keyIsDown('k')) {
+      this.yPrime += 0.25;
+    }
+    if (keyIsDown('l')) {
+      this.xPrime += 0.25;
+    }
+    if (keyIsDown('j')) {
+      this.xPrime -= 0.25;
+    }
+  }
+
+  interactions() {
+
+  }
+
+}
+
+class Coin {
+  constructor() {
+
+  }
+
+  spawn() {
+
+  }
+
+  ifCollected() {
+
+  }
+
+  despawn() {
+
+  }
+}
+
+class KillBrick {
+  constructor() {
+
+  }
+
+  warning() {
+
+  }
+
+}
 
 async function setup() {
   createCanvas(windowWidth, windowHeight);
   rectMode(CENTER);
-  
+
+  rows = Math.floor(height/CELL_SIZE);
+  cols = Math.floor(width/CELL_SIZE);
+  if (rows % 2 === 1) {
+    rows -=1;
+  }
+  if (cols % 2 === 1) {
+    cols -=1;
+  }
 
   fieldCoords.x = width/2;
   fieldCoords.y = height/2;
 
-  cols = Math.floor(height/CELL_SIZE);
-  rows = Math.floor(width/CELL_SIZE);
-  if (cols % 2 === 1) {
-    cols -=1;
-  }
-  if (rows % 2 === 1) {
-    rows -=1;
-  }
   grid = initializeGrid(cols, rows);
+  player = new Player();
 }
+
+
 
 function draw() {
   background(220);
   moveRect();
   
   
-  grid = formField(cols, rows);
-  selectTile(recordFieldCoords(cols, rows));
+  grid = formField(rows, cols);
+  
+ 
+  console.log(selectTile(recordFieldCoords(rows, cols), 2, 3).y);
 
   
   rect(fieldCoords.x, fieldCoords.y, FIELD_DIMS.width, FIELD_DIMS.height);
-  displayTiles(cols, rows);
+ 
+  player.select();
+  player.spawn();
+  player.move();
+  displayTiles(rows, cols);
+  
   
 }
 
 
-function initializeGrid(cols, rows) {
+function initializeGrid(rows, cols) {
   let placeHolderGrid = [];
-  for (let y = 0; y < cols; y++) {
+  for (let y = 0; y < rows; y++) {
     placeHolderGrid.push([]);
-    for (let x = 0; x < rows; x++) {
+    for (let x = 0; x < cols; x++) {
       placeHolderGrid[y].push(1);
     }
   }
   return placeHolderGrid;
 }
 
-function displayTiles(cols, rows) {
-  for (let y = 0; y < cols; y++) {
-    for (let x = 0; x < rows; x++) {
+function displayTiles(rows, cols) {
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
       if (grid[y][x] === 1) {
         fill('white');
       }
@@ -103,11 +189,11 @@ function displayTiles(cols, rows) {
   }
 }
 
-function formField(cols, rows) {
-  let nextFrame = initializeGrid(cols, rows);
+function formField(rows, cols) {
+  let nextFrame = initializeGrid(rows, cols);
 
-  for (let y = 0; y < cols; y++) {
-    for (let x = 0; x < rows; x++) {
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
       let curTileX = x * CELL_SIZE + CELL_SIZE/2;
       let curTileY = y * CELL_SIZE + CELL_SIZE/2;
       let within = borderHandler(curTileX, curTileY, false);
@@ -123,29 +209,24 @@ function formField(cols, rows) {
   return nextFrame;
 }
 
-function recordFieldCoords(cols, rows) {
+function recordFieldCoords(rows, cols) {
   let nextField = [];
   let rowCounter = 0;
 
-  for (let y = 0; y < cols; y++) {
+  for (let y = 0; y < rows; y++) {
 
     let curTileY = y * CELL_SIZE + CELL_SIZE/2;
+    
 
     if (borderHandler(null, curTileY, FIELD_DIMS.orientation.verticals)) {
       nextField.push([]);
       
-      for (let x = 0; x < rows; x++) {
+      for (let x = 0; x < cols; x++) {
 
         let curTileX = x * CELL_SIZE + CELL_SIZE/2;
 
         if (borderHandler(curTileX, null, FIELD_DIMS.orientation.horizontals)) {
-          let relativeX = curTileX - (fieldCoords.x - FIELD_DIMS.width/2);
-          let relativeY = curTileY - (fieldCoords.y - FIELD_DIMS.height/2);
-
-          let tileX = Math.floor(relativeX/CELL_SIZE + 0.5);
-          let tileY = Math.floor(relativeY/CELL_SIZE + 0.5);
-
-          nextField[rowCounter].push({x : tileX, y : tileY});
+          nextField[rowCounter].push({x , y});
         }
       }
       rowCounter++;
@@ -155,22 +236,16 @@ function recordFieldCoords(cols, rows) {
   return nextField;
 }
 
-function selectTile(selection) {
+function selectTile(selection, x, y) {
   let newField = selection;
 
-  let selectedY = newField[5];
-  let selectedTile = selectedY[5];
+  // let selectedY = newField[Math.floor(Math.random() * newField.length)];
+  // let selectedTile = selectedY[Math.floor(Math.random() * selectedY.length)];
 
-  //Math.floor(Math.random() * selectedY.length)
+  let selectedY = newField[y];
+  let selectedTile = selectedY[x];
 
-  let borderY = fieldCoords.y - FIELD_DIMS.height/2;
-  let borderX = fieldCoords.x - FIELD_DIMS.width/2;
-  
-  let correspondingY = selectedTile.y + Math.floor(borderY / CELL_SIZE);
-  let correspondingX = selectedTile.x + Math.floor(borderX / CELL_SIZE);
-
-
-  console.log(correspondingX, correspondingY);
+  return selectedTile;
 }
 
 
@@ -183,8 +258,8 @@ function borderHandler(xCoords, yCoords, orientation) {
   let upBorder = Math.floor(fieldCoords.y - FIELD_DIMS.height/2);
   let downBorder = Math.floor(fieldCoords.y + FIELD_DIMS.height/2);
 
-  withins[0] = xCoords > leftBorder && xCoords < rightBorder;
-  withins[1] = yCoords > upBorder && yCoords < downBorder;
+  withins[0] = xCoords + CELL_SIZE/2 > leftBorder && xCoords - CELL_SIZE/2 < rightBorder;
+  withins[1] = yCoords + CELL_SIZE/2 > upBorder && yCoords - CELL_SIZE/2 < downBorder;
 
   if (orientation) {
     return withins[orientation - 1];
@@ -198,10 +273,10 @@ function borderHandler(xCoords, yCoords, orientation) {
 function fieldBorder() {
   let withins = [false, false];
 
-  if (fieldCoords.x + FIELD_DIMS.width/2 > cols * CELL_SIZE || fieldCoords.x - FIELD_DIMS.width/2 <= 0) {
+  if (fieldCoords.x + FIELD_DIMS.width/2 <= cols * CELL_SIZE && fieldCoords.x - FIELD_DIMS.width/2 >= 0) {
     withins[0] = true; 
   }
-  if (fieldCoords.y + FIELD_DIMS.height/2 > rows * CELL_SIZE || fieldCoords.y - FIELD_DIMS.height/2 <= 0) {
+  if (fieldCoords.y + FIELD_DIMS.height/2 <= rows * CELL_SIZE && fieldCoords.y - FIELD_DIMS.height/2 >= 0) {
     withins[1] = true; 
   }
 
@@ -209,21 +284,27 @@ function fieldBorder() {
 }
 
 function moveRect() {
-  if (fieldBorder()) {
-    if (keyIsDown('a')) {
-      fieldCoords.x -= FIELD_SPEED;
-    }
-    if (keyIsDown('d')) {
-      fieldCoords.x += FIELD_SPEED;
-    }
-    if (keyIsDown('s')) {
-      fieldCoords.y += FIELD_SPEED;
-    }
-    if (keyIsDown('w')) {
-      fieldCoords.y -= FIELD_SPEED;
-    }
+  let updateX = fieldCoords.x;
+  let updateY = fieldCoords.y;
+
+  if (keyIsDown('a')) {
+    updateX -= FIELD_SPEED;
   }
-  
+  if (keyIsDown('d')) {
+    updateX += FIELD_SPEED;
+  }
+  if (keyIsDown('s')) {
+    updateY += FIELD_SPEED;
+  }
+  if (keyIsDown('w')) {
+    updateY -= FIELD_SPEED;
+  }
 
+  if (updateX - FIELD_DIMS.width/2 >= 0 && updateX + FIELD_DIMS.width/2 <= cols * CELL_SIZE) {
+    fieldCoords.x = updateX;
+  }
+
+  if (updateY - FIELD_DIMS.height/2 >= 0 && updateY + FIELD_DIMS.height/2 <= rows * CELL_SIZE) {
+    fieldCoords.y = updateY;
+  }
 }
-
