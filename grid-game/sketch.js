@@ -40,46 +40,61 @@ let field;
 
 let player;
 let playerSettings = {
+  iFrames : 1500,
   health : 25,
   speed : 0.25,
-  startingFieldX : FIELD_COLS/2,
-  startingFieldY : FIELD_ROWS - FIELD_ROWS/3
+  x : FIELD_COLS/2,
+  y : FIELD_ROWS - FIELD_ROWS/3,
+  type : CELLS.player
 } ;
 
 let killBrickStorage = [];
-let killBrickSettings = {
+let globalKillBrickSettings = {
+  type : CELLS.killTile,
   cooldown : 1000,
-  damage : 1,
   periods : {
     warning : 1500,
     initiated : 500,
   },
+  idCounter : 0,
+  lastInstance : 0
 } ;
-let killBrickIdCounter = 0;
 let killBrickLastInstance = 0;
 
 
 let coinStorage = [];
-let coinSettings = {
+let globalCoinSettings = {
+  type : CELLS.coin,
   cooldown : 2000,
   lifeTime : 3500,
+  idCounter : 0,
+  lastInstance : 0
 } ;
-let coinIdCounter = 0;
-let coinLastInstance = 0;
+
 
 let coinCollectedCounter = 0;
 
 
+
+
+
+
 class Player {
-  constructor(fieldX, fieldY, health, speed, cellType) {
+  constructor(entitySettings) {
     this.curField = [];
-    this.fieldPosX = fieldX;
-    this.fieldPosY = fieldY;
-    this.gridPosX = 0;
-    this.gridPosY = 0;
-    this.cellType = cellType;
-    this.health = health;
-    this.speed = speed;
+    this.fieldPos = {
+      x : entitySettings.x,
+      y : entitySettings.y,
+    } ; 
+    this.gridPos = {
+      x : 0,
+      y : 0
+    } ; 
+    this.cellType = entitySettings.type;
+    this.health = entitySettings.health;
+    this.speed = entitySettings.speed;
+    this.iFrames = entitySettings.iFrames;
+    this.isImmune = false;
 
 
   }
@@ -88,113 +103,86 @@ class Player {
     this.curField = recordFieldCoords(rows, cols);
     let field = this.curField;
     
-    let onRow = field[Math.floor(this.fieldPosY)];
-    let onTile = onRow[Math.floor(this.fieldPosX)]
-    
-    this.gridPosX = onTile.x;
-    this.gridPosY = onTile.y;
+    let onRow = field[Math.floor(this.fieldPos.y)];
+
+    if (onRow) {
+      let onTile = onRow[Math.floor(this.fieldPos.x)]
+
+      if (onTile) {
+        this.gridPos.x = onTile.x;
+        this.gridPos.y = onTile.y;
+      }
+      else {
+        this.outOfBounds();
+      }
+    }
+    else {
+      this.outOfBounds();
+    }
+  }
+
+  outOfBounds() {
+    this.fieldPos.x = playerSettings.x;
+    this.fieldPos.y = playerSettings.y;
+
+    this.health--;
   }
 
   display() {
-    grid[this.gridPosY][this.gridPosX] = this.cellType;
+    grid[this.gridPos.y][this.gridPos.x] = this.cellType;
   }
 
   move() {
     if (keyIsDown('i')) {
-      this.fieldPosY -= this.speed;
+      this.fieldPos.y -= this.speed;
     }
     if (keyIsDown('k')) {
-      this.fieldPosY += this.speed;
+      this.fieldPos.y += this.speed;
     }
     if (keyIsDown('l')) {
-      this.fieldPosX += this.speed;
+      this.fieldPos.x += this.speed;
     }
     if (keyIsDown('j')) {
-      this.fieldPosX -= this.speed;
+      this.fieldPos.x -= this.speed;
     }
   }
 
   interactions() {
-    if (grid[this.gridPosY][this.gridPosX] === CELLS.killTile.initiated) {
+    if (grid[this.gridPos.y][this.gridPos.x] === CELLS.killTile.initiated && !this.isImmune) {
       this.health--;
+      this.isImmune = true;
+      this.removeImmunity(); 
     }
 
-    else if (grid[this.gridPosY][this.gridPosX] === CELLS.coin) {
+    else if (grid[this.gridPos.y][this.gridPos.x] === CELLS.coin) {
       coinCollectedCounter++;
     }
   }
 
-}
-
-class Coin {
-  constructor(fieldX, fieldY, cellType, lifeTime, id) {
-    this.curField = [];
-    this.fieldPosX = fieldX;
-    this.fieldPosY = fieldY;
-    this.gridPosY = 0;
-    this.gridPosY = 0;
-    this.cellType = cellType;
-    this.lifeTime = lifeTime;
-    this.isAlive = true;
-    this.tileId = id;
+  removeImmunity() {
+    waitFor(this.iFrames)
+    .then (() => this.isImmune = false);
   }
 
-  recordTileFieldPos() {
-    this.curField = recordFieldCoords(rows, cols);
-    let field = this.curField;
-    
-    let onRow = field[Math.floor(this.fieldPosY)];
-    let onTile = onRow[Math.floor(this.fieldPosX)]
-    
-    this.gridPosX = onTile.x;
-    this.gridPosY = onTile.y;
-  }
 
-  display() {
-    grid[this.gridPosY][this.gridPosX] = this.cellType;
-  }
-
-  isCollected() {
-    if (this.gridPosX === player.gridPosX && this.gridPosY === player.gridPosY) {
-      this.delete();
-    }
-  }
-
-  collectablePeriod() {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        resolve()
-      }, this.lifeTime)
-    })
-  }
-  
-
-  delete() {
-    let findTileStorage = coinStorage.findIndex(tile => tile.tileId === this.tileId);
-
-    if (findTileStorage !== -1) {
-      coinStorage.splice(findTileStorage, 1);
-    }
-  }
-
-  iterate() {
-    this.collectablePeriod()
-    .then(() => this.delete());
-  }
 
 }
 
 class KillBrick {
-  constructor(fieldX, fieldY, cellType, periods, id) {
+  constructor(entitySettings) {
     this.curField = [];
-    this.fieldPosX = fieldX;
-    this.fieldPosY = fieldY;
-    this.gridPosX = 0;
-    this.gridPosY = 0;
-    this.cellType = cellType;
-    this.curPeriod = periods;
+    this.fieldPos = {
+      x : entitySettings.x,
+      y : entitySettings.y,
+    } ; 
+    this.gridPos = {
+      x : 0,
+      y : 0
+    } ; 
+    this.cellType = entitySettings.type;
+    this.curPeriod = entitySettings.periods;
     this.curState = this.cellType.warning;
-    this.tileId = id;
+    this.tileId = entitySettings.id
     
   }
 
@@ -202,31 +190,15 @@ class KillBrick {
     this.curField = recordFieldCoords(rows, cols);
     let field = this.curField;
     
-    let onRow = field[Math.floor(this.fieldPosY)];
-    let onTile = onRow[Math.floor(this.fieldPosX)]
+    let onRow = field[Math.floor(this.fieldPos.y)];
+    let onTile = onRow[Math.floor(this.fieldPos.x)]
     
-    this.gridPosX = onTile.x;
-    this.gridPosY = onTile.y;
+    this.gridPos.x = onTile.x;
+    this.gridPos.y = onTile.y;
   }
 
-  display() {
-    grid[this.gridPosY][this.gridPosX] = this.curState;
-  }
-
-  warningPeriod() {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        resolve()
-      }, this.curPeriod.warning)
-    })
-  }
-
-  initiatedPeriod() {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        resolve()
-      }, this.curPeriod.initiated)
-    })
+  assign() {
+    grid[this.gridPos.y][this.gridPos.x] = this.curState;
   }
 
   initiate() {
@@ -242,9 +214,81 @@ class KillBrick {
   }
 
   iterate() {
-    this.warningPeriod()
+    waitFor(this.curPeriod.warning)
     .then(() => this.initiate())
-    .then(() => this.initiatedPeriod())
+    .then(() => waitFor(this.curPeriod.initiated))
+    .then(() => this.delete());
+  }
+
+}
+
+
+class Coin {
+  constructor(entitySettings) {
+    this.curField = [];
+    this.fieldPos = {
+      x : entitySettings.x,
+      y : entitySettings.y,
+    } ; 
+    this.gridPos = {
+      x : 0,
+      y : 0
+    } ; 
+    this.cellType = entitySettings.type;
+    this.lifeTime = entitySettings.lifeTime;
+    this.isAlive = true;
+    this.tileId = entitySettings.id
+
+    // this.sheet = spriteSheet;
+    // this.x = entity.player.x;
+    // this.y = entity.player.y;
+    // this.h = spriteSheet.height;
+    // this.curframe = 0;
+    // this.totalframes = spriteSheet.width / spriteSheet.height;
+    // this.yface = yface;
+    // this.framesby = framesby;
+    // this.offsetx = offsetx;
+    // this.offsety = offsety;
+    // this.xscale = xscale;
+    // this.yscale = yscale;
+  }
+
+  recordTileFieldPos() {
+    this.curField = recordFieldCoords(rows, cols);
+    let field = this.curField;
+    
+    let onRow = field[Math.floor(this.fieldPos.y)];
+    let onTile = onRow[Math.floor(this.fieldPos.x)]
+    
+    this.gridPos.x = onTile.x;
+    this.gridPos.y = onTile.y;
+  }
+
+  assign() {
+    grid[this.gridPos.y][this.gridPos.x] = this.cellType;
+  }
+
+  display() {
+    fill('yellow');
+    circle(this.gridPos.x * CELL_SIZE, this.gridPos.y * CELL_SIZE, CELL_SIZE*1.5);
+  }
+
+  collected() {
+    if (this.gridPos.x === player.gridPos.x && this.gridPos.y === player.gridPos.y) {
+      this.delete();
+    }
+  }
+  
+  delete() {
+    let findTileStorage = coinStorage.findIndex(tile => tile.tileId === this.tileId);
+
+    if (findTileStorage !== -1) {
+      coinStorage.splice(findTileStorage, 1);
+    }
+  }
+
+  iterate() {
+    waitFor(this.lifeTime)
     .then(() => this.delete());
   }
 
@@ -256,9 +300,11 @@ class KillBrick {
 
 
 
+
 async function setup() {
   createCanvas(windowWidth, windowHeight);
   rectMode(CENTER);
+  ellipseMode(CENTER);
 
   rows = Math.floor(height/CELL_SIZE);
   cols = Math.floor(width/CELL_SIZE);
@@ -273,8 +319,7 @@ async function setup() {
   fieldCoords.y = height/2;
 
   grid = initializeGrid(cols, rows);
-  player = new Player(playerSettings.startingFieldX, playerSettings.startingFieldY, playerSettings.health,
-                      playerSettings.speed, CELLS.player);
+  player = new Player(playerSettings);
 }
 
 
@@ -286,7 +331,7 @@ function draw() {
   
   grid = formField(rows, cols);
   
-  rect(fieldCoords.x, fieldCoords.y, FIELD_DIMS.width, FIELD_DIMS.height);
+  // rect(fieldCoords.x, fieldCoords.y, FIELD_DIMS.width, FIELD_DIMS.height);
 
   
   
@@ -294,11 +339,12 @@ function draw() {
   player.recordTileFieldPos();
   player.move();
 
-  generateNewKillBrick(killBrickSettings.cooldown);
-  displayNewKillBrick();
+  generateNewKillBrick(globalKillBrickSettings.cooldown, globalKillBrickSettings.lastInstance);
+  assignNewKillBrick();
 
-  generateNewCoin(coinSettings.cooldown);
-  displayNewCoin();
+  generateNewCoin(globalCoinSettings.cooldown, globalCoinSettings.lastInstance);
+  assignNewCoinToGrid()
+  
 
   player.interactions();
   player.display();
@@ -307,6 +353,8 @@ function draw() {
   
   
   displayTiles(rows, cols);
+  
+  displayNewCoin();
 
   console.log(coinCollectedCounter, player.health);
 }
@@ -408,9 +456,9 @@ function recordFieldCoords(rows, cols) {
 
 
 
-function generateNewKillBrick(cooldown) {
-  if (millis() >= killBrickLastInstance + cooldown) {
-    killBrickLastInstance = millis();
+function generateNewKillBrick(cooldown, lastInstance) {
+  if (millis() >= lastInstance + cooldown) {
+    globalKillBrickSettings.lastInstance = millis();
     spawnNewKillBrick();
   }
 }
@@ -419,24 +467,26 @@ function spawnNewKillBrick() {
   let xRange = FIELD_COLS;
   let yRange = FIELD_ROWS;
 
-  let fieldX = Math.floor(Math.random() * xRange);
-  let fieldY = Math.floor(Math.random() * yRange);
-  let cellType = CELLS.killTile;
-  let periods = killBrickSettings.periods;
-  let id = killBrickIdCounter;
+  let killBrickSettings = {
+    x : Math.floor(Math.random() * xRange),
+    y : Math.floor(Math.random() * yRange),
+    type :  globalKillBrickSettings.type,
+    periods : globalKillBrickSettings.periods,
+    id : globalKillBrickSettings.idCounter
+  }
 
-  let killTile = new KillBrick(fieldX, fieldY, cellType, periods, id);
+  let killTile = new KillBrick(killBrickSettings);
 
   killBrickStorage.push(killTile);
   killTile.iterate();
 
-  killBrickIdCounter++;
+  globalKillBrickSettings.idCounter++;
 }
 
-function displayNewKillBrick() {
+function assignNewKillBrick() {
   for (let killBrick of killBrickStorage) {
     killBrick.recordTileFieldPos();
-    killBrick.display();
+    killBrick.assign();
   }
 }
 
@@ -444,11 +494,10 @@ function displayNewKillBrick() {
 
 
 
-function generateNewCoin(cooldown) {
-  if (millis() >= coinLastInstance + cooldown) {
-    coinLastInstance = millis();
+function generateNewCoin(cooldown, lastInstance) {
+  if (millis() >= lastInstance + cooldown) {
+    globalCoinSettings.lastInstance = millis();
     spawnNewCoin();
-    
   }
 }
 
@@ -456,30 +505,40 @@ function spawnNewCoin() {
   let xRange = FIELD_COLS;
   let yRange = FIELD_ROWS;
 
-  let fieldX = Math.floor(Math.random() * xRange);
-  let fieldY = Math.floor(Math.random() * yRange);
-  let cellType = CELLS.coin;
-  let lifeTime = coinSettings.lifeTime;
-  let id = coinIdCounter;
+  let coinSettings = {
+    x : Math.floor(Math.random() * xRange),
+    y : Math.floor(Math.random() * yRange),
+    type : globalCoinSettings.type,
+    lifeTime : globalCoinSettings.lifeTime,
+    id : globalCoinSettings.idCounter,
+  } ;
 
-  let coin = new Coin(fieldX, fieldY, cellType, lifeTime, id)
+ 
+
+  let coin = new Coin(coinSettings);
 
   coinStorage.push(coin);
   coin.iterate();
 
-  coinIdCounter++
+  globalCoinSettings.idCounter++;
 }
 
-function displayNewCoin() {
+function assignNewCoinToGrid() {
   for (let coin of coinStorage) {
     coin.recordTileFieldPos();
-    coin.display();
+    coin.assign();
   }
 }
 
 function ifCoinCollected() {
   for (let coin of coinStorage) {
-    coin.isCollected();
+    coin.collected();
+  }
+}
+
+function displayNewCoin() {
+  for (let coin of coinStorage) {
+    coin.display();
   }
 }
 
@@ -546,3 +605,16 @@ function moveRect() {
     fieldCoords.y = updateY;
   }
 }
+
+
+
+
+
+
+function waitFor(ms) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve()
+      }, ms)
+    })
+  }
