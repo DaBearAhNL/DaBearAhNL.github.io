@@ -16,9 +16,11 @@ const CELLS = {
 } ; 
 
 const FIELD_SPEED = 5;
+const FIELD_COLS = 16;
+const FIELD_ROWS = 12;
 const FIELD_DIMS = {
-  width : CELL_SIZE * 16,
-  height : CELL_SIZE * 12,
+  width : CELL_SIZE * FIELD_COLS,
+  height : CELL_SIZE * FIELD_ROWS,
   orientation : {
     verticals : 2,
     horizontals : 1
@@ -36,24 +38,29 @@ let field;
 
 let player;
 let playerSettings = {
-  health : 100,
-  
+  health : 25,
+  speed : 0.25,
+  startingFieldX : FIELD_COLS/2,
+  startingFieldY : FIELD_ROWS - FIELD_ROWS/3
 }
 
 let killBrickStorage = [];
+let killBrickWarningPeriod = 0;
+
 let coinStorage = [];
 
 
 class Player {
-  constructor() {
+  constructor(startX, startY, health, speed, cellType) {
     this.curField = [];
-    this.fieldPosX = 3;
-    this.fieldPosY = 3;
+    this.fieldPosX = startX;
+    this.fieldPosY = startY;
     this.gridPosX = 0;
     this.gridPosY = 0;
-    this.prevGridPosX = 0;
-    this.prevGridPosY = 0;
-    this.cellType = CELLS.player;
+    this.cellType = cellType;
+    this.health = health;
+    this.speed = speed;
+
 
   }
 
@@ -74,22 +81,22 @@ class Player {
 
   move() {
     if (keyIsDown('i')) {
-      this.fieldPosY -= 0.25;
+      this.fieldPosY -= this.speed;
     }
     if (keyIsDown('k')) {
-      this.fieldPosY += 0.25;
+      this.fieldPosY += this.speed;
     }
     if (keyIsDown('l')) {
-      this.fieldPosX += 0.25;
+      this.fieldPosX += this.speed;
     }
     if (keyIsDown('j')) {
-      this.fieldPosX -= 0.25;
+      this.fieldPosX -= this.speed;
     }
   }
 
   interactions() {
     if (grid[this.gridPosY][this.gridPosX] === CELLS.killbricks) {
-      playerSettings.health--;
+      this.health--;
     }
   }
 
@@ -97,6 +104,7 @@ class Player {
 
 class Coin {
   constructor() {
+    
 
   }
 
@@ -115,7 +123,14 @@ class Coin {
 
 class KillBrick {
   constructor() {
-
+    this.curField = [];
+    this.fieldPosX = 5;
+    this.fieldPosY = 5;
+    this.gridPosX = 0;
+    this.gridPosY = 0;
+    this.prevGridPosX = 0;
+    this.prevGridPosY = 0;
+    this.cellType = CELLS.killbricks;
   }
 
   warning() {
@@ -141,7 +156,8 @@ async function setup() {
   fieldCoords.y = height/2;
 
   grid = initializeGrid(cols, rows);
-  player = new Player();
+  player = new Player(playerSettings.startingFieldX, playerSettings.startingFieldY, playerSettings.health,
+                      playerSettings.speed, CELLS.player);
 }
 
 
@@ -162,9 +178,6 @@ function draw() {
   player.interactions();
   player.display();
   
-
-  console.log(playerSettings.health);
-
   
   displayTiles(rows, cols);
   
@@ -258,17 +271,21 @@ function recordFieldCoords(rows, cols) {
   return nextField;
 }
 
-function selectTile(selection, x, y) {
-  let newField = selection;
 
-  // let selectedY = newField[Math.floor(Math.random() * newField.length)];
-  // let selectedTile = selectedY[Math.floor(Math.random() * selectedY.length)];
 
-  let selectedY = newField[y];
-  let selectedTile = selectedY[x];
 
-  return selectedTile;
+function generateNewKillBrick() {
+  let killTileSettings = {
+    fieldX : Math.random(0,FIELD_COLS),
+    fieldY : Math.random(0,FIELD_ROWS),
+
+
+  }
+
 }
+
+
+
 
 
 function borderHandler(xCoords, yCoords, orientation) {
