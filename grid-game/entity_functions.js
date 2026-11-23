@@ -20,7 +20,7 @@ function spawnNewKillBrick() { // Gives a killbrick tile certain settings to det
     type :  globalKillBrickSettings.type,
     periods : globalKillBrickSettings.periods,
     id : globalKillBrickSettings.idCounter
-  }
+  } ;
   let cosmeticSettings = globalKillBrickCosmeticSettings;
 
   let killTile = new KillBrick(killBrickSettings, cosmeticSettings);

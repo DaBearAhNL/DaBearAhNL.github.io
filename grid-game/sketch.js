@@ -81,7 +81,7 @@ function runGame() {
 
   // Assigns a new coin tile after a certain cooldown.
   generateNewCoin(globalCoinSettings.cooldown, globalCoinSettings.lastInstance);
-  assignNewCoinToGrid()
+  assignNewCoinToGrid();
 
   player.interactions(); // Player interactions occur at the very last of the functions so that events from interacting with other entities happen at the same frame.
     
@@ -109,9 +109,9 @@ function deathScreen() {
   // All the "boxes" or borders that encase the following text and layers it ontop of the game itself.
   fill(200, 0, 0, 120);
   rect(screenWidth/2, screenHeight/2, screenWidth, screenHeight);
-  fill(255, 255, 255)
+  fill(255, 255, 255);
   rect(screenWidth/2, screenHeight/3, screenWidth/3, screenHeight/8);
-  rect(screenWidth/2, screenHeight/2, screenWidth/5, screenHeight/8)
+  rect(screenWidth/2, screenHeight/2, screenWidth/5, screenHeight/8);
 
   // All the text encased within the boxes
   textSize(50);

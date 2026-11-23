@@ -94,8 +94,8 @@ function borderHandler(xCoords, yCoords, orientation) { // Creates starting poin
 }
 
 function moveField() { // Moves the field around randomly to disorientate the player.
-  fieldCoords.x += fieldCoords.dx
-  fieldCoords.y += fieldCoords.dy
+  fieldCoords.x += fieldCoords.dx;
+  fieldCoords.y += fieldCoords.dy;
 
   if (fieldCoords.x <= 0 + FIELD_DIMS.width/2 || fieldCoords.x >= (cols * CELL_SIZE) - FIELD_DIMS.width/2) {
     fieldCoords.dx *= -1;

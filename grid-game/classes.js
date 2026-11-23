@@ -26,7 +26,7 @@ class Player { // Player Class
     let onRow = field[Math.floor(this.fieldPos.y)];
 
     if (onRow) {
-      let onTile = onRow[Math.floor(this.fieldPos.x)]
+      let onTile = onRow[Math.floor(this.fieldPos.x)];
 
       if (onTile) {
         this.gridPos.x = onTile.x;
@@ -119,7 +119,7 @@ class KillBrick { // Killbrick Class
     this.sheetWidth = cosmeticSettings.spritesheet.width;
     this.sheetHeight = cosmeticSettings.spritesheet.height;
     this.totalSprites = this.sheetWidth / this.sheetHeight;
-    this.frameWidth = this.sheetWidth / this.totalSprites
+    this.frameWidth = this.sheetWidth / this.totalSprites;
     this.spriteOn = 0;
     this.byFramesOf = cosmeticSettings.framesBy;
     this.timing = cosmeticSettings.timing;
@@ -134,7 +134,7 @@ class KillBrick { // Killbrick Class
     let field = this.curField;
     
     let onRow = field[Math.floor(this.fieldPos.y)];
-    let onTile = onRow[Math.floor(this.fieldPos.x)]
+    let onTile = onRow[Math.floor(this.fieldPos.x)];
     
     this.gridPos.x = onTile.x;
     this.gridPos.y = onTile.y;
@@ -161,7 +161,7 @@ class KillBrick { // Killbrick Class
   }
 
   delete() { // Deletes killbrick after their lifetime.
-  let findTileStorage = killBrickStorage.findIndex(tile => tile.tileId === this.tileId);
+    let findTileStorage = killBrickStorage.findIndex(tile => tile.tileId === this.tileId);
 
     if (findTileStorage !== -1) {
       killBrickStorage.splice(findTileStorage, 1);
@@ -199,12 +199,12 @@ class Coin { // Coin Class
     this.cellType = entitySettings.type;
     this.lifeTime = entitySettings.lifeTime;
     this.isAlive = true;
-    this.tileId = entitySettings.id
+    this.tileId = entitySettings.id;
     // Coin animation variables
     this.spritesheet = cosmeticSettings.spritesheet;
     this.sheetWidth = cosmeticSettings.spritesheet.width;
     this.sheetHeight = cosmeticSettings.spritesheet.height;
-    this.frameWidth = this.sheetWidth / 4
+    this.frameWidth = this.sheetWidth / 4;
     this.totalSprites = this.sheetWidth / this.sheetHeight;
     this.spriteOn = 0;
     this.spriteInsurance = 1.4;
@@ -221,7 +221,7 @@ class Coin { // Coin Class
     let field = this.curField;
     
     let onRow = field[Math.floor(this.fieldPos.y)];
-    let onTile = onRow[Math.floor(this.fieldPos.x)]
+    let onTile = onRow[Math.floor(this.fieldPos.x)];
     
     this.gridPos.x = onTile.x;
     this.gridPos.y = onTile.y;
