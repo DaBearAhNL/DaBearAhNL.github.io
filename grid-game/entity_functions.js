@@ -1,11 +1,16 @@
-function generateNewKillBrick(cooldown, lastInstance) {
+// These functions are all for the entities that spawn like the coin or killbrick.
+// They are responsible for assigning them a position, spawning after a set amount of time, and displaying their animations.
+
+
+// KILLBRICK FUNCTIONS
+function generateNewKillBrick(cooldown, lastInstance) { // Spawns killbrick after set amount of time.
   if (millis() >= lastInstance + cooldown) {
     globalKillBrickSettings.lastInstance = millis();
     spawnNewKillBrick();
   }
 }
 
-function spawnNewKillBrick() {
+function spawnNewKillBrick() { // Gives a killbrick tile certain settings to determine where they are placed on the field and a unique identifier.
   let xRange = FIELD_COLS;
   let yRange = FIELD_ROWS;
 
@@ -16,7 +21,6 @@ function spawnNewKillBrick() {
     periods : globalKillBrickSettings.periods,
     id : globalKillBrickSettings.idCounter
   }
-
   let cosmeticSettings = globalKillBrickCosmeticSettings;
 
   let killTile = new KillBrick(killBrickSettings, cosmeticSettings);
@@ -27,23 +31,30 @@ function spawnNewKillBrick() {
   globalKillBrickSettings.idCounter++;
 }
 
-function assignNewKillBrick() {
+function assignNewKillBrick() { // Places the killbrick on a tile from the field.
   for (let killBrick of killBrickStorage) {
     killBrick.recordTileFieldPos();
     killBrick.assign();
   }
 }
 
-function displayNewKillBrick() {
+function displayNewKillBrick() { // Runs the animation of a killbrick.
   for (let killBrick of killBrickStorage) {
     killBrick.display();
   }
 }
 
+function increaseDifficulty(cooldown, lastInstance, decrease) { // Spawns even more killbricks after 2 seconds.
+  if (globalKillBrickSettings.cooldown > 300) {
+    if (millis() >= lastInstance + cooldown) {
+      lastDifficultyRiseInstance = millis();
+      globalKillBrickSettings.cooldown -= decrease;
+    }
+  }
+}
 
 
-
-
+// COIN FUNCTIONS
 function generateNewCoin(cooldown, lastInstance) {
   if (millis() >= lastInstance + cooldown) {
     globalCoinSettings.lastInstance = millis();
@@ -51,7 +62,7 @@ function generateNewCoin(cooldown, lastInstance) {
   }
 }
 
-function spawnNewCoin() {
+function spawnNewCoin() { // Gives a coin tile certain settings to determine where they are placed on the field and a unique identifier.
   let xRange = FIELD_COLS;
   let yRange = FIELD_ROWS;
 
@@ -62,7 +73,6 @@ function spawnNewCoin() {
     lifeTime : globalCoinSettings.lifeTime,
     id : globalCoinSettings.idCounter,
   } ;
-
   let cosmeticSettings = globalCoinCosmeticSettings;
 
   let coin = new Coin(coinSettings, cosmeticSettings);
@@ -73,21 +83,21 @@ function spawnNewCoin() {
   globalCoinSettings.idCounter++;
 }
 
-function assignNewCoinToGrid() {
+function assignNewCoinToGrid() { // Places the coin on a tile from the field
   for (let coin of coinStorage) {
     coin.recordTileFieldPos();
     coin.assign();
   }
 }
 
-function ifCoinCollected() {
+function displayNewCoin() { // Runs the animation of a killbrick
   for (let coin of coinStorage) {
-    coin.collected();
+    coin.display();
   }
 }
 
-function displayNewCoin() {
+function ifCoinCollected() { // Detects if a coin has been detected and deletes it from the coin storage.
   for (let coin of coinStorage) {
-    coin.display();
+    coin.collected();
   }
 }

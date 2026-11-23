@@ -1,9 +1,4 @@
-// // Grid Game
-// // Newell Devera
-// // November 4, 2026
-// //
-// // Extra for Experts:
-// // - describe what you did to take this project "above and beyond"
+// This is all incase everything goes to hell, unfortunately there is no sound inside here.
 
 // const CELL_SIZE = 30;
 // const CELLS = {

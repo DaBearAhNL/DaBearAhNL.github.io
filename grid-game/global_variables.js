@@ -1,3 +1,6 @@
+// All the global variables basically
+
+// Cell settings and types
 const CELL_SIZE = 30;
 const CELLS = {
   void : 0,
@@ -10,6 +13,7 @@ const CELLS = {
   coin : 5
 } ; 
 
+// Determines how wide, how tall, and how many columns and rows there are in the field
 const FIELD_COLS = 16;
 const FIELD_ROWS = 12;
 const FIELD_DIMS = {
@@ -21,11 +25,13 @@ const FIELD_DIMS = {
   }
 } ;
 
+// Foundational variables that allow the recording and manipulation of the size and settings of both grid and field.
 let rows;
 let cols;
 let grid;
 let field;
 
+// Used for moving the field around and determines where the recordFieldCoords function should look.
 let fieldCoords = {
   x : 0,
   y : 0,
@@ -33,7 +39,7 @@ let fieldCoords = {
   dy : 0,
 } ;
 
-
+// Player settings
 let player;
 let playerIsAlive = true;
 let playerSettings = {
@@ -45,6 +51,7 @@ let playerSettings = {
   type : CELLS.player,
 } ;
 
+// Killbrick settings
 let killBrickStorage = [];
 let globalKillBrickSettings = {
   type : CELLS.killTile,
@@ -53,10 +60,10 @@ let globalKillBrickSettings = {
     warning : 500,
     initiated : 500,
   },
-  idCounter : 0,
+  idCounter : 0, // Specifically made to provide each new killbrick within a round a new id.
   lastInstance : 0
 } ;
-let globalKillBrickCosmeticSettings = {
+let globalKillBrickCosmeticSettings = { // Animation settings and sfx of a killbrick
   spritesheet : null,
   framesBy : 1,
   timing : 0.14,
@@ -67,15 +74,16 @@ let globalKillBrickCosmeticSettings = {
   sfx : null,
 } ;
 
+// Coin settings
 let coinStorage = [];
 let globalCoinSettings = {
   type : CELLS.coin,
   cooldown : 2000,
   lifeTime : 3500,
-  idCounter : 0,
+  idCounter : 0, // Specifically made to provide each new coin within a round a new id.
   lastInstance : 0
 } ;
-let globalCoinCosmeticSettings = {
+let globalCoinCosmeticSettings = { // Animation settings and sfx of a coin.
   spritesheet : null,
   framesBy : 1,
   timing : 0.15,
@@ -86,11 +94,13 @@ let globalCoinCosmeticSettings = {
   sfx :  null,
 } ; 
 
+// Other misc global variables basically.
 let coinCollectedCounter = 0;
 let increaseDifficultyAfter = 2000;
 let lastDifficultyRiseInstance = 0;
 let decreaseSpawnCooldown = 50;
 
+// Sound effect holders and recorders.
 let hitSfx;
 let deathSfx = [1, 2, 3, 4];
 let aliveTheme;
@@ -99,6 +109,7 @@ let deadTheme;
 let isAliveThemeOn = false;
 let isDeadThemeOn = false;
 
+// Whenever a new round starts it calls back to these variables to return manipulated variables to their default settings.
 let defaults = {
   fieldCoords : null,
   playerSettings : structuredClone(playerSettings),
