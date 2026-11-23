@@ -51,16 +51,24 @@ let playerSettings = {
 let killBrickStorage = [];
 let globalKillBrickSettings = {
   type : CELLS.killTile,
-  cooldown : 1000,
+  cooldown : 75,
   periods : {
-    warning : 1500,
+    warning : 500,
     initiated : 500,
   },
   idCounter : 0,
   lastInstance : 0
 } ;
-let killBrickLastInstance = 0;
-
+let globalKillBrickCosmeticSettings = {
+  spritesheet : null,
+  framesBy : 1,
+  timing : 12500,
+  scaling : {
+    x : 0.5,
+    y : 0.5,
+  },
+  sfx :  null,
+}
 
 let coinStorage = [];
 let globalCoinSettings = {
@@ -70,8 +78,16 @@ let globalCoinSettings = {
   idCounter : 0,
   lastInstance : 0
 } ;
-
-
+let globalCoinCosmeticSettings = {
+  spritesheet : null,
+  framesBy : 1,
+  timing : 15000,
+  scaling : {
+    x : 0.35,
+    y : 0.2,
+  },
+  sfx :  null,
+}
 let coinCollectedCounter = 0;
 
 
@@ -169,8 +185,9 @@ class Player {
 }
 
 class KillBrick {
-  constructor(entitySettings) {
+  constructor(entitySettings, cosmeticSettings) {
     this.curField = [];
+
     this.fieldPos = {
       x : entitySettings.x,
       y : entitySettings.y,
@@ -179,11 +196,31 @@ class KillBrick {
       x : 0,
       y : 0
     } ; 
+
+    this.screenCoords = {
+      x : 0,
+      y : 0,
+    } ;
+
     this.cellType = entitySettings.type;
-    this.curPeriod = entitySettings.periods;
+    this.periods = entitySettings.periods;
     this.curState = this.cellType.warning;
-    this.tileId = entitySettings.id
+    this.tileId = entitySettings.id;
     
+    this.spritesheet = cosmeticSettings.spritesheet;
+    this.sheetWidth = cosmeticSettings.spritesheet.width;
+    this.sheetHeight = cosmeticSettings.spritesheet.height;
+
+    this.totalSprites = this.sheetWidth / this.sheetHeight;
+    this.spriteOn = 0;
+
+    this.byFramesOf = cosmeticSettings.framesBy;
+    this.timing = cosmeticSettings.timing;
+
+    this.scaling = {
+      x : cosmeticSettings.scaling.x,
+      y : cosmeticSettings.scaling.y
+    } ;
   }
 
   recordTileFieldPos() {
@@ -201,6 +238,20 @@ class KillBrick {
     grid[this.gridPos.y][this.gridPos.x] = this.curState;
   }
 
+  display() {
+    this.byFramesOf = (this.periods.warning + this.periods.initiated) / this.timing;
+
+    this.screenCoords.x = this.gridPos.x * CELL_SIZE + CELL_SIZE/2;
+    this.screenCoords.y = this.gridPos.y * CELL_SIZE + CELL_SIZE/2;
+
+    image(this.spritesheet, this.screenCoords.x, this.screenCoords.y, this.sheetHeight*this.scaling.x, this.sheetHeight*this.scaling.y,
+      this.sheetHeight*Math.floor(this.spriteOn), 0, this.sheetHeight, this.sheetHeight
+    ) ;
+
+    this.spriteOn += this.byFramesOf;
+
+  }
+
   initiate() {
     this.curState = this.cellType.initiated;
   }
@@ -214,9 +265,9 @@ class KillBrick {
   }
 
   iterate() {
-    waitFor(this.curPeriod.warning)
+    waitFor(this.periods.warning)
     .then(() => this.initiate())
-    .then(() => waitFor(this.curPeriod.initiated))
+    .then(() => waitFor(this.periods.initiated))
     .then(() => this.delete());
   }
 
@@ -224,8 +275,9 @@ class KillBrick {
 
 
 class Coin {
-  constructor(entitySettings) {
+  constructor(entitySettings, cosmeticSettings) {
     this.curField = [];
+
     this.fieldPos = {
       x : entitySettings.x,
       y : entitySettings.y,
@@ -234,23 +286,33 @@ class Coin {
       x : 0,
       y : 0
     } ; 
+
+    this.screenCoords = {
+      x : 0,
+      y : 0
+    } ;
+
     this.cellType = entitySettings.type;
     this.lifeTime = entitySettings.lifeTime;
     this.isAlive = true;
     this.tileId = entitySettings.id
 
-    // this.sheet = spriteSheet;
-    // this.x = entity.player.x;
-    // this.y = entity.player.y;
-    // this.h = spriteSheet.height;
-    // this.curframe = 0;
-    // this.totalframes = spriteSheet.width / spriteSheet.height;
-    // this.yface = yface;
-    // this.framesby = framesby;
-    // this.offsetx = offsetx;
-    // this.offsety = offsety;
-    // this.xscale = xscale;
-    // this.yscale = yscale;
+    this.spritesheet = cosmeticSettings.spritesheet;
+    this.sheetWidth = cosmeticSettings.spritesheet.width;
+    this.sheetHeight = cosmeticSettings.spritesheet.height;
+
+    this.frameWidth = this.sheetWidth / 4
+    this.totalSprites = this.sheetWidth / this.sheetHeight;
+    this.spriteOn = 0;
+    this.spriteInsurance = 1.4;
+
+    this.timing = cosmeticSettings.timing;
+    this.byFramesOf = cosmeticSettings.framesBy;
+
+    this.scaling = {
+      x : cosmeticSettings.scaling.x,
+      y : cosmeticSettings.scaling.y
+    } ;
   }
 
   recordTileFieldPos() {
@@ -269,8 +331,20 @@ class Coin {
   }
 
   display() {
-    fill('yellow');
-    circle(this.gridPos.x * CELL_SIZE, this.gridPos.y * CELL_SIZE, CELL_SIZE*1.5);
+    this.byFramesOf = (this.lifeTime) / this.timing;
+
+    this.screenCoords.x = this.gridPos.x * CELL_SIZE + CELL_SIZE/2;
+    this.screenCoords.y = this.gridPos.y * CELL_SIZE + CELL_SIZE/2;
+
+    image(this.spritesheet, this.screenCoords.x, this.screenCoords.y, this.sheetHeight*this.scaling.x, this.sheetHeight*this.scaling.y,
+      this.frameWidth*Math.floor(this.spriteOn), 0, this.frameWidth, this.sheetHeight
+    ) ;
+
+    this.spriteOn += this.byFramesOf;
+
+    if (Math.floor(this.spriteOn) >= this.totalSprites - this.spriteInsurance) {
+      this.spriteOn = 0;
+    }
   }
 
   collected() {
@@ -304,7 +378,10 @@ class Coin {
 async function setup() {
   createCanvas(windowWidth, windowHeight);
   rectMode(CENTER);
-  ellipseMode(CENTER);
+  imageMode(CENTER);
+
+  globalKillBrickCosmeticSettings.spritesheet = await loadImage('Spritesheet/attack_spritesheet.png');
+  globalCoinCosmeticSettings.spritesheet = await loadImage('Spritesheet/coin_spritesheet.png');
 
   rows = Math.floor(height/CELL_SIZE);
   cols = Math.floor(width/CELL_SIZE);
@@ -354,6 +431,7 @@ function draw() {
   
   displayTiles(rows, cols);
   
+  displayNewKillBrick();
   displayNewCoin();
 
   console.log(coinCollectedCounter, player.health);
@@ -475,7 +553,9 @@ function spawnNewKillBrick() {
     id : globalKillBrickSettings.idCounter
   }
 
-  let killTile = new KillBrick(killBrickSettings);
+  let cosmeticSettings = globalKillBrickCosmeticSettings;
+
+  let killTile = new KillBrick(killBrickSettings, cosmeticSettings);
 
   killBrickStorage.push(killTile);
   killTile.iterate();
@@ -487,6 +567,12 @@ function assignNewKillBrick() {
   for (let killBrick of killBrickStorage) {
     killBrick.recordTileFieldPos();
     killBrick.assign();
+  }
+}
+
+function displayNewKillBrick() {
+  for (let killBrick of killBrickStorage) {
+    killBrick.display();
   }
 }
 
@@ -513,9 +599,9 @@ function spawnNewCoin() {
     id : globalCoinSettings.idCounter,
   } ;
 
- 
+  let cosmeticSettings = globalCoinCosmeticSettings;
 
-  let coin = new Coin(coinSettings);
+  let coin = new Coin(coinSettings, cosmeticSettings);
 
   coinStorage.push(coin);
   coin.iterate();
