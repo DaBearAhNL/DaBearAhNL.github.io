@@ -19,6 +19,7 @@
 - [Character In Grid](15-character)
 - [setTimeout](16-set-timeout)
 - [setInterval](17-set-interval)
+- [Walker](18-walker)
 
 ## Projects
 

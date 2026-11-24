@@ -1,12 +1,12 @@
 // Walker OOP Demo
 
 class Walker {
-  constructor(x, y) {
+  constructor(x, y, color) {
     this.x = x;
     this.y = y;
-    this.speed = 50;
-    this.diameter = 50;
-    this.color = "red";
+    this.speed = 10;
+    this.diameter = 10;
+    this.color = color;
   }
 
   display() {
@@ -32,31 +32,31 @@ class Walker {
 }
 
 let newell; 
-let theo;
-let thing; 
-let thiny;
+let walkerStorage = [];
 
 async function setup() {
   
   createCanvas(windowWidth, windowHeight);
   newell = new Walker(width/2, height/2);
-  theo = new Walker(300, 400);
-  thing = new Walker(800, 200,);
-  thiny = new Walker(600, 750);
-  theo.color = "blue";
-  thing.color = "green";
-  thiny.color = "yellow";
   noStroke();
 }
 
 function draw() {
-  newell.display();
-  theo.display();
-  thing.display();
-  thiny.display();
 
-  newell.move();
-  theo.move();
-  thing.move();
-  thiny.move();
+  newWalker();
+  walkerBehaviour();
+}
+
+function newWalker() {
+  let newColor = color(random(255), random(255), random(255));
+  let walker = new Walker(random(0, width), random(0, height), newColor);
+
+  walkerStorage.push(walker);
+}
+
+function walkerBehaviour() {
+  for (let walker of walkerStorage) {
+    walker.move();
+    walker.display();
+  }
 }
