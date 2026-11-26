@@ -20,6 +20,7 @@
 - [setTimeout](16-set-timeout)
 - [setInterval](17-set-interval)
 - [Walker](18-walker)
+- [Fireworks](19-fireworks)
 
 ## Projects
 
